@@ -1,4 +1,4 @@
-# T00niebox Server
+# T00niebox Client
 
 This is the client component of t00niebox, my custom reimplementation of the [Toniebox](https://tonies.de/).
 
