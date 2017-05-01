@@ -1,9 +1,6 @@
 <?php
 namespace Dachande\T00nieBox;
 
-use JJG\Ping;
-use AFM\Rsync\Rsync;
-
 class Client
 {
     /**
@@ -78,7 +75,7 @@ class Client
      */
     protected function serverIsReachable()
     {
-        $ping = new Ping($this->configuration->get('app.Server.host'));
+        $ping = new \JJG\Ping($this->configuration->get('app.Server.host'));
         $ping->setPort($this->configuration->get('app.Server.port'));
         $ping->setTimeout(1);
 
@@ -155,7 +152,7 @@ class Client
         }
 
         // Initialize rsync
-        $rsync = new Rsync();
+        $rsync = new \AFM\Rsync\Rsync();
         if ($withTarget === true) {
             $rsyncCommand = $rsync->getCommand($source, $target);
         } else {
