@@ -1,5 +1,7 @@
 {
     "name": "dachande/t00niebox-client",
+    "description": "Toniebox Remake Client",
+    "type": "project",
     "authors": [
         {
             "name": "Daniel Schultheis",
@@ -7,8 +9,11 @@
         }
     ],
     "require": {
+        "mrrio/shellwrap": "^0.4.1",
         "guzzlehttp/guzzle": "^6.2",
-        "mrrio/shellwrap": "^0.4.1"
+        "albertofem/rsync-lib": "1.0.0-alpha2",
+        "geerlingguy/ping": "^1.1",
+        "sinergi/config": "^0.6.4"
     },
     "autoload": {
         "psr-4": {
