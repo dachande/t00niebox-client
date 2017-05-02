@@ -36,4 +36,8 @@ return [
             ],
         ],
     ],
+
+    'App' => [
+        'lastIdFile' => ROOT . DS . 'last_id',
+    ],
 ];

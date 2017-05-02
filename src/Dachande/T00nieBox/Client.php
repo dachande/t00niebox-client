@@ -1,6 +1,8 @@
 <?php
 namespace Dachande\T00nieBox;
 
+use Streamer\Stream;
+
 class Client
 {
     /**
@@ -49,6 +51,10 @@ class Client
      */
     public function run()
     {
+        $this->writeLastId($this->uuid);
+        print $this->readLastId();
+        exit;
+
         // Get server status
         $this->serverIsReachable();
 
@@ -247,5 +253,21 @@ class Client
         $port = $this->configuration->get('app.Server.port');
 
         return $protocol . '://' . $hostname . ':' . $port;
+    }
+
+    protected function readLastId()
+    {
+        $stream = new Stream(fopen($this->configuration->get('app.App.lastIdFile'), 'r'));
+        $lastId = $stream->getContent();
+        $stream->close();
+
+        return $lastId;
+    }
+
+    protected function writeLastId($lastId)
+    {
+        $stream = new Stream(fopen($this->configuration->get('app.App.lastIdFile'), 'w'));
+        $stream->write($lastId);
+        $stream->close();
     }
 }
