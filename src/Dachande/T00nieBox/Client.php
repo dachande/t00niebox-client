@@ -51,9 +51,9 @@ class Client
      */
     public function run()
     {
-        $this->writeLastId($this->uuid);
-        print $this->readLastId();
-        exit;
+        // Testing lastId handling
+        // $this->writeLastId($this->uuid);
+        // print $this->readLastId();
 
         // Get server status
         $this->serverIsReachable();
@@ -61,13 +61,14 @@ class Client
         // Playlist generation
         // $rsyncCommand = $this->initializeRsync(false);
         // $output = $this->executeRsync($rsyncCommand);
-        // print $this->generatePlaylistFromRsyncOuptut($output) . "\n";
+        // print $this->generatePlaylistFromRsyncOutput($output) . "\n";
 
         // File synchronization
         // $rsyncCommand = $this->initializeRsync();
         // $rsyncCommand->execute(true);
 
-        print $this->getPlaylists()->getBody();
+        // Server query
+        // print $this->getPlaylists()->getBody();
     }
 
     /**
@@ -226,7 +227,7 @@ class Client
      * @param  string $rsyncOutput
      * @return string
      */
-    protected function generatePlaylistFromRsyncOuptut($rsyncOutput)
+    protected function generatePlaylistFromRsyncOutput($rsyncOutput)
     {
         $input = explode("\n", $rsyncOutput);
         $output = [];
