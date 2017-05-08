@@ -13,8 +13,9 @@
         "guzzlehttp/guzzle": "^6.2",
         "albertofem/rsync-lib": "1.0.0-alpha2",
         "geerlingguy/ping": "^1.1",
-        "sinergi/config": "^0.6.4",
-        "fzaninotto/Streamer": "^0.0.1"
+        "fzaninotto/Streamer": "^0.0.1",
+        "cakephp/core": "^3.4",
+        "cakephp/log": "^3.4"
     },
     "autoload": {
         "psr-4": {

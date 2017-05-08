@@ -26,4 +26,4 @@ define('APP', ROOT . DS . APP_DIR . DS);
 /**
  * Path to the config directory.
  */
-define('CONFIG', APP . DS . 'config' . DS);
+define('CONFIG', ROOT . DS . 'config' . DS);
