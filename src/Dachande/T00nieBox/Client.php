@@ -1,6 +1,7 @@
 <?php
 namespace Dachande\T00nieBox;
 
+use Cake\Core\Configure;
 use Streamer\Stream;
 
 class Client
@@ -16,19 +17,14 @@ class Client
     protected $serverReachable = false;
 
     /**
-     * @var \Sinergi\Config\Collection
-     */
-    protected $configuration = null;
-
-    /**
      * Initialize the t00niebox client.
      */
     public function __construct()
     {
-        // Load configuration
-        $this->configuration = \Sinergi\Config\Collection::factory([
-            'path' => CONFIG,
-        ]);
+        // // Load configuration
+        // $this->configuration = \Sinergi\Config\Collection::factory([
+        //     'path' => CONFIG,
+        // ]);
     }
 
     /**
@@ -51,12 +47,27 @@ class Client
      */
     public function run()
     {
+        // Check for valid uuid
+        debug(Configure::read('App'));
+        exit;
+        if ($this->uuid === null || !strlen($this->uuid) || !preg_match(Configure::read('App.uuidRegexp'), $this->uuid)) {
+            throw new \Dachande\T00nieBox\Exception\InvalidUuidException();
+        }
+
+        // Check if uuid matches lastId
+        if ($this->uuid === $this->readLastId()) {
+            // TODO: MPD resume
+            return true;
+        }
+
+        // Get server status
+        $this->serverIsReachable();
+
+        print var_export($this->getPlaylist(), 1);
         // Testing lastId handling
         // $this->writeLastId($this->uuid);
         // print $this->readLastId();
 
-        // Get server status
-        $this->serverIsReachable();
 
         // Playlist generation
         // $rsyncCommand = $this->initializeRsync(false);
@@ -82,8 +93,8 @@ class Client
      */
     protected function serverIsReachable()
     {
-        $ping = new \JJG\Ping($this->configuration->get('app.Server.host'));
-        $ping->setPort($this->configuration->get('app.Server.port'));
+        $ping = new \JJG\Ping(Configure::read('Server.host'));
+        $ping->setPort(Configure::read('Server.port'));
         $ping->setTimeout(1);
 
         $latency = $ping->ping('fsockopen');
@@ -111,6 +122,8 @@ class Client
         if ($this->serverReachable === true) {
             $client = new \GuzzleHttp\Client();
             $result = $client->request($method, $this->getServerURI() . $endpoint);
+        } else {
+            $result = false;
         }
 
         return $result;
@@ -124,6 +137,31 @@ class Client
     protected function getPlaylists()
     {
         $result = $this->sendServerRequest('/playlists');
+
+        if ($result !== false) {
+            $result = json_decode($result->getBody());
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get playlist by uuid
+     *
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    protected function getPlaylist($filesOnly = true)
+    {
+        $result = $this->sendServerRequest('/playlists' . '/' . $this->uuid);
+
+        if ($result !== false) {
+            $result = json_decode($result->getBody(), true);
+
+            if ($filesOnly) {
+                $result = $result['playlist']['files_array'];
+            }
+        }
+
         return $result;
     }
 
@@ -143,16 +181,16 @@ class Client
     protected function initializeRsync($withTarget = true)
     {
         // Set Rsync source
-        $source = $this->configuration->get('app.Rsync.source');
-        $sourceUsername = $this->configuration->get('app.Rsync.sourceUsername');
+        $source = Configure::read('Rsync.source');
+        $sourceUsername = Configure::read('Rsync.sourceUsername');
         if ($sourceUsername !== null) {
             $source = $sourceUsername . '@' . $source;
         }
 
         // Set Rsync target
         if ($withTarget === true) {
-            $target = $this->configuration->get('app.Rsync.target');
-            $targetUsername = $this->configuration->get('app.Rsync.targetUsername');
+            $target = Configure::read('Rsync.target');
+            $targetUsername = Configure::read('Rsync.targetUsername');
             if ($targetUsername !== null) {
                 $target = $targetUsername . '@' . $target;
             }
@@ -167,7 +205,7 @@ class Client
         }
 
         // Add options
-        $options = $this->configuration->get('app.Rsync.config.options');
+        $options = Configure::read('Rsync.config.options');
         if ($options !== null && is_array($options)) {
             foreach ($options as $option) {
                 $rsyncCommand->addOption($option);
@@ -175,7 +213,7 @@ class Client
         }
 
         // Add arguments
-        $arguments = $this->configuration->get('app.Rsync.config.arguments');
+        $arguments = Configure::read('Rsync.config.arguments');
         if ($arguments !== null && is_array($arguments)) {
             foreach ($arguments as $argument => $value) {
                 if (is_array($value)) {
@@ -249,16 +287,16 @@ class Client
      */
     protected function getServerURI()
     {
-        $protocol = $this->configuration->get('app.Server.protocol');
-        $hostname = $this->configuration->get('app.Server.host');
-        $port = $this->configuration->get('app.Server.port');
+        $protocol = Configure::read('Server.protocol');
+        $hostname = Configure::read('Server.host');
+        $port = Configure::read('Server.port');
 
         return $protocol . '://' . $hostname . ':' . $port;
     }
 
     protected function readLastId()
     {
-        $stream = new Stream(fopen($this->configuration->get('app.App.lastIdFile'), 'r'));
+        $stream = new Stream(fopen(Configure::read('App.lastIdFile'), 'r'));
         $lastId = $stream->getContent();
         $stream->close();
 
@@ -267,7 +305,7 @@ class Client
 
     protected function writeLastId($lastId)
     {
-        $stream = new Stream(fopen($this->configuration->get('app.App.lastIdFile'), 'w'));
+        $stream = new Stream(fopen(Configure::read('App.lastIdFile'), 'w'));
         $stream->write($lastId);
         $stream->close();
     }
