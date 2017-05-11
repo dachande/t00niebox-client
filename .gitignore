@@ -2,3 +2,4 @@ vendor
 config/app.php
 composer.lock
 composer.phar
+last_id
