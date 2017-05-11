@@ -2,7 +2,6 @@
 namespace Dachande\T00nieBox;
 
 use Cake\Core\Configure;
-use Streamer\Stream;
 
 class Client
 {
@@ -19,24 +18,22 @@ class Client
     /**
      * Initialize the t00niebox client.
      */
-    public function __construct()
+    public function __construct($uuid)
     {
-        // // Load configuration
-        // $this->configuration = \Sinergi\Config\Collection::factory([
-        //     'path' => CONFIG,
-        // ]);
+        $this->setUuid($uuid);
     }
 
     /**
      * Set the rfid card/transponder uuid.
      *
-     * This method should be run before running the main run() method of the
-     * t00niebox client.
-     *
      * @param string $uuid
      */
     public function setUuid($uuid)
     {
+        if (!preg_match(Configure::read('App.uuidRegexp'), $uuid)) {
+            throw new \Dachande\T00nieBox\Exception\InvalidUuidException();
+        }
+
         $this->uuid = $uuid;
     }
 
@@ -47,15 +44,7 @@ class Client
      */
     public function run()
     {
-        // Check for valid uuid
-        debug(Configure::read('App'));
-        exit;
-        if ($this->uuid === null || !strlen($this->uuid) || !preg_match(Configure::read('App.uuidRegexp'), $this->uuid)) {
-            throw new \Dachande\T00nieBox\Exception\InvalidUuidException();
-        }
-
-        // Check if uuid matches lastId
-        if ($this->uuid === $this->readLastId()) {
+        if (LastId::compare($this->uuid)) {
             // TODO: MPD resume
             return true;
         }
@@ -292,21 +281,5 @@ class Client
         $port = Configure::read('Server.port');
 
         return $protocol . '://' . $hostname . ':' . $port;
-    }
-
-    protected function readLastId()
-    {
-        $stream = new Stream(fopen(Configure::read('App.lastIdFile'), 'r'));
-        $lastId = $stream->getContent();
-        $stream->close();
-
-        return $lastId;
-    }
-
-    protected function writeLastId($lastId)
-    {
-        $stream = new Stream(fopen(Configure::read('App.lastIdFile'), 'w'));
-        $stream->write($lastId);
-        $stream->close();
     }
 }
