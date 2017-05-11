@@ -11,11 +11,6 @@ class Client
     protected $uuid = '';
 
     /**
-     * @var boolean
-     */
-    protected $serverReachable = false;
-
-    /**
      * Initialize the t00niebox client.
      */
     public function __construct($uuid)
@@ -49,15 +44,6 @@ class Client
             return true;
         }
 
-        // Get server status
-        $this->serverIsReachable();
-
-        print var_export($this->getPlaylist(), 1);
-        // Testing lastId handling
-        // $this->writeLastId($this->uuid);
-        // print $this->readLastId();
-
-
         // Playlist generation
         // $rsyncCommand = $this->initializeRsync(false);
         // $output = $this->executeRsync($rsyncCommand);
@@ -71,26 +57,6 @@ class Client
         // print $this->getPlaylists()->getBody();
     }
 
-    /**
-     * This method checks if the t00niebox server is reachable.
-     *
-     * Checking that the server is available is essential for a working
-     * t00niebox environment because the client acts differently depending on
-     * the availability of the server.
-     *
-     * @return boolean
-     */
-    protected function serverIsReachable()
-    {
-        $ping = new \JJG\Ping(Configure::read('Server.host'));
-        $ping->setPort(Configure::read('Server.port'));
-        $ping->setTimeout(1);
-
-        $latency = $ping->ping('fsockopen');
-
-        $this->serverReachable = ($latency !== false) ? true : false;
-        return $this->serverReachable;
-    }
 
     /**
      * Send a http request to the server

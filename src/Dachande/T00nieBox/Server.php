@@ -4,25 +4,32 @@ namespace Dachande\T00nieBox;
 use Cake\Core\Configure;
 use JJG\Ping;
 
+/**
+ * t00niebox server interaction.
+ *
+ * This class is used to interact with the t00niebox server.
+ * It does general reachability checks and retrieves playlists and
+ * eventually other information from the server as well.
+ */
 class Server
 {
     /**
      * Stores if the server is reachable
-
+     *
      * @var boolean
      */
-    protected $isReachable = false;
+    protected static $isReachable = null;
 
     /**
-     * This method checks if the t00niebox server is reachable.
+     * Check the t00niebox server reachability
      *
      * Checking that the server is available is essential for a working
      * t00niebox environment because the client acts differently depending on
-     * the availability of the server.
+     * the reachability of the server.
      *
      * @return boolean
      */
-    public function checkReachability()
+    public static function checkReachability()
     {
         $ping = new Ping(Configure::read('Server.host'));
         $ping->setPort(Configure::read('Server.port'));
@@ -30,12 +37,25 @@ class Server
 
         $latency = $ping->ping('fsockopen');
 
-        $this->isReachable = ($latency !== false) ? true : false;
-        return $this->isReachable;
+        static::$isReachable = ($latency !== false) ? true : false;
+        return static::$isReachable;
     }
 
-    public function isReachable($recheck = false)
+    /**
+     * Return server reachability.
+     *
+     * Does a reachability check if reachability has not yet been checked or
+     * if a reachability check is being forced by setting $recheck to true.
+     *
+     * @param  boolean $recheck
+     * @return boolean
+     */
+    public static function isReachable($recheck = false)
     {
-        return ($recheck === true) ? $this->checkReachability() : $this->isReachable;
+        if ($recheck === true || static::$isReachable === null) {
+            return static::checkReachability();
+        }
+
+        return static::$isReachable;
     }
 }
