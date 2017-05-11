@@ -44,6 +44,9 @@ class Client
             return true;
         }
 
+        debug(Server::getAllPlaylists());
+        debug(Server::getPlaylistByUuid($this->uuid));
+
         // Playlist generation
         // $rsyncCommand = $this->initializeRsync(false);
         // $output = $this->executeRsync($rsyncCommand);
@@ -55,69 +58,6 @@ class Client
 
         // Server query
         // print $this->getPlaylists()->getBody();
-    }
-
-
-    /**
-     * Send a http request to the server
-     *
-     * This method sends an http request to the server and returns the result
-     *
-     * @param  string  $endpoint
-     * @param  string  $method
-     * @param  boolean $forceServerCheck
-     * @return \Psr\Http\Message\ResponseInterface
-     */
-    protected function sendServerRequest($endpoint, $method = 'GET', $forceServerCheck = false)
-    {
-        if ($forceServerCheck) {
-            $this->serverIsReachable();
-        }
-
-        if ($this->serverReachable === true) {
-            $client = new \GuzzleHttp\Client();
-            $result = $client->request($method, $this->getServerURI() . $endpoint);
-        } else {
-            $result = false;
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get all playlists managed by the server
-     *
-     * @return \Psr\Http\Message\ResponseInterface
-     */
-    protected function getPlaylists()
-    {
-        $result = $this->sendServerRequest('/playlists');
-
-        if ($result !== false) {
-            $result = json_decode($result->getBody());
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get playlist by uuid
-     *
-     * @return \Psr\Http\Message\ResponseInterface
-     */
-    protected function getPlaylist($filesOnly = true)
-    {
-        $result = $this->sendServerRequest('/playlists' . '/' . $this->uuid);
-
-        if ($result !== false) {
-            $result = json_decode($result->getBody(), true);
-
-            if ($filesOnly) {
-                $result = $result['playlist']['files_array'];
-            }
-        }
-
-        return $result;
     }
 
     /**
@@ -233,19 +173,5 @@ class Client
         }
 
         return implode("\n", $output);
-    }
-
-    /**
-     * Get protocol://host:port combination from values stored in configuration
-     *
-     * @return string
-     */
-    protected function getServerURI()
-    {
-        $protocol = Configure::read('Server.protocol');
-        $hostname = Configure::read('Server.host');
-        $port = Configure::read('Server.port');
-
-        return $protocol . '://' . $hostname . ':' . $port;
     }
 }

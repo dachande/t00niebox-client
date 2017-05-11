@@ -2,7 +2,10 @@
 namespace Dachande\T00nieBox;
 
 use Cake\Core\Configure;
+use GuzzleHttp\Exception\ClientException;
 use JJG\Ping;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 
 /**
  * t00niebox server interaction.
@@ -57,5 +60,63 @@ class Server
         }
 
         return static::$isReachable;
+    }
+
+    /**
+     * Send a http request to the server
+     *
+     * This method sends an http request to the server and returns the result
+     *
+     * @param  string  $endpoint
+     * @param  string  $method
+     * @param  boolean $forceServerCheck
+     * @return \Psr\Http\Message\ResponseInterface
+     */
+    protected static function query($endpoint, $method = 'GET')
+    {
+        if (static::isReachable() === true) {
+            $client = new Client();
+            $result = $client->request($method, static::getURI() . '/' . $endpoint);
+        } else {
+            $result = false;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Get protocol://host:port combination from values stored in configuration
+     *
+     * @return string
+     */
+    protected static function getURI()
+    {
+        $protocol = Configure::read('Server.protocol');
+        $hostname = Configure::read('Server.host');
+        $port = Configure::read('Server.port');
+
+        return $protocol . '://' . $hostname . ':' . $port;
+    }
+
+    public static function getAllPlaylists()
+    {
+        try {
+            $result = static::query('playlists')->getBody()->getContents();
+        } catch (ClientException $e) {
+            $result = $e->getResponse()->getBody()->getContents();
+        }
+
+        return json_decode($result, true);
+    }
+
+    public static function getPlaylistByUuid($uuid)
+    {
+        try {
+            $result = static::query('playlists/' . $uuid)->getBody()->getContents();
+        } catch (ClientException $e) {
+            $result = $e->getResponse()->getBody()->getContents();
+        }
+
+        return json_decode($result, true);
     }
 }
