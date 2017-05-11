@@ -8,7 +8,13 @@ class LastId
 {
     public static function get()
     {
-        $stream = new Stream(fopen(Configure::read('App.lastIdFile'), 'r'));
+        $lastIdFile = Configure::read('App.lastIdFile');
+
+        if (!file_exists($lastIdFile)) {
+            return null;
+        }
+
+        $stream = new Stream(fopen($lastIdFile, 'r'));
         $lastId = $stream->getContent();
         $stream->close();
 
@@ -28,5 +34,4 @@ class LastId
 
         return ($id === $lastId) ? true : false;
     }
-
 }

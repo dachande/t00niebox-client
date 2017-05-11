@@ -2,6 +2,7 @@
 namespace Dachande\T00nieBox;
 
 use Cake\Core\Configure;
+use Dachande\T00nieBox\Exception\InvalidUuidException;
 
 class Client
 {
@@ -26,7 +27,7 @@ class Client
     public function setUuid($uuid)
     {
         if (!preg_match(Configure::read('App.uuidRegexp'), $uuid)) {
-            throw new \Dachande\T00nieBox\Exception\InvalidUuidException();
+            throw new InvalidUuidException();
         }
 
         $this->uuid = $uuid;
@@ -46,6 +47,8 @@ class Client
 
         debug(Server::getAllPlaylists());
         debug(Server::getPlaylistByUuid($this->uuid));
+
+        LastId::set($this->uuid);
 
         // Playlist generation
         // $rsyncCommand = $this->initializeRsync(false);
