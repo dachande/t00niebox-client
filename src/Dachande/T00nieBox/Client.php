@@ -6,6 +6,8 @@ use Dachande\T00nieBox\Exception\InvalidUuidException;
 
 class Client
 {
+    use \Cake\Log\LogTrait;
+
     /**
      * @var string
      */
@@ -26,10 +28,7 @@ class Client
      */
     public function setUuid($uuid)
     {
-        if (!preg_match(Configure::read('App.uuidRegexp'), $uuid)) {
-            throw new InvalidUuidException();
-        }
-
+        $this->log(sprintf('Setting uuid to %s.', $uuid), 'debug');
         $this->uuid = $uuid;
     }
 
@@ -40,6 +39,11 @@ class Client
      */
     public function run()
     {
+        $this->log('Client started.', 'debug');
+        if (!preg_match(Configure::read('App.uuidRegexp'), $this->uuid)) {
+            throw new InvalidUuidException('The supplied uuid is invalid');
+        }
+
         if (LastId::compare($this->uuid)) {
             // TODO: MPD resume
             return true;
