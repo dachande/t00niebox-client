@@ -16,6 +16,8 @@ use GuzzleHttp\Exception\GuzzleException;
  */
 class Server
 {
+    use \Cake\Log\LogTrait;
+
     /**
      * Stores if the server is reachable
      *
@@ -34,11 +36,22 @@ class Server
      */
     public static function checkReachability()
     {
+        $host = Configure::read('Server.host');
+        $port = Configure::read('Server.port');
+
+        static::log(sprintf('Trying to reach the server at %s:%s.', $host, $port), 'debug');
+
         $ping = new Ping(Configure::read('Server.host'));
         $ping->setPort(Configure::read('Server.port'));
         $ping->setTimeout(1);
 
         $latency = $ping->ping('fsockopen');
+
+        if ($latency !== false) {
+            static::log(sprintf('Server is reachable with a latency of %d.', $latency), 'debug');
+        } else {
+            static::log('Server is unreachable', 'debug');
+        }
 
         static::$isReachable = ($latency !== false) ? true : false;
         return static::$isReachable;
@@ -75,8 +88,12 @@ class Server
     protected static function query($endpoint, $method = 'GET')
     {
         if (static::isReachable() === true) {
+            $url = static::getURI() . '/' . $endpoint;
+
+            static::log(sprintf('Sending server request to %s', $url), 'debug');
+
             $client = new Client();
-            $result = $client->request($method, static::getURI() . '/' . $endpoint);
+            $result = $client->request($method, $url);
         } else {
             $result = false;
         }

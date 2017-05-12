@@ -5,7 +5,7 @@ require __DIR__ . '/paths.php';
 use Cake\Core\Configure;
 use Cake\Core\Configure\Engine\PhpConfig;
 use Cake\Log\Log;
-use Dachande\T00nieBox\ErrorHandler;
+use Dachande\T00nieBox\Error\ErrorHandler;
 
 // Configuration
 try {

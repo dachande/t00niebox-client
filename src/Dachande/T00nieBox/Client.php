@@ -39,7 +39,7 @@ class Client
      */
     public function run()
     {
-        $this->log('Client started.', 'debug');
+        $this->log('Running the client.', 'info');
         if (!preg_match(Configure::read('App.uuidRegexp'), $this->uuid)) {
             throw new InvalidUuidException('The supplied uuid is invalid');
         }
