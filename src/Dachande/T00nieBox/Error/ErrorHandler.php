@@ -19,7 +19,7 @@ class ErrorHandler
         if ($exception instanceof Error) {
             $exception = new PHP7ErrorException($exception);
         }
-        debug($exception);
+
         $this->displayException($exception);
         $this->logException($exception);
     }

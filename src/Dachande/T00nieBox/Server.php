@@ -4,7 +4,6 @@ namespace Dachande\T00nieBox;
 use Cake\Core\Configure;
 use JJG\Ping;
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
 

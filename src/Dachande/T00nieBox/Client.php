@@ -68,15 +68,17 @@ class Client
         // Try to get playlist from server for the specified uuid.
         $playlist = Server::getPlaylistByUuid($this->uuid);
 
-        if ($playlist === false) {
-            // It looks like the server could not be reached.
-            // So we try to find a local copy of the playlist for that uuid.
-        } else {
+        if ($playlist !== false) {
             // Playlist was successfully downloaded. We now need to check if
             // the playlist is not empty.
+            $playlist = new Playlist($playlist);
+            debug($playlist->getFilesFromList());
 
             // Write current uuid to lastId
-            LastId::set($this->uuid);
+            // LastId::set($this->uuid);
+        } else {
+            // It looks like the server could not be reached.
+            // So we try to find a local copy of the playlist for that uuid.
         }
     }
 }
