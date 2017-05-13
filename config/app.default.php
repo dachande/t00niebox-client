@@ -18,7 +18,7 @@ return [
      * - lastIdFile - Location of the file that stores the last recognized uuid
      */
     'App' => [
-        'uuidRegexp' => '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/',
+        'uuidRegexp' => '/^[0-9a-f]{8}$/',
         'lastIdFile' => ROOT . DS . 'last_id',
     ],
 
@@ -66,6 +66,14 @@ return [
                     '*',
                 ],
             ],
+        ],
+
+        'Log' => [
+            'debug' => [
+                'className' => 'Cake\Log\Engine\SyslogLog',
+                'levels' => ['error', 'warning', 'notice', 'info', 'debug'],
+                'format' => 't00niebox Client - %s: %s',
+            ]
         ],
     ],
 ];
