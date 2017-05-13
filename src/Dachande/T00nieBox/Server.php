@@ -2,10 +2,11 @@
 namespace Dachande\T00nieBox;
 
 use Cake\Core\Configure;
-use GuzzleHttp\Exception\ClientException;
 use JJG\Ping;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\ConnectException;
 
 /**
  * t00niebox server interaction.
@@ -93,7 +94,14 @@ class Server
             static::log(sprintf('Sending server request to %s', $url), 'debug');
 
             $client = new Client();
-            $result = $client->request($method, $url);
+
+            try {
+                $result = $client->request($method, $url);
+                static::log(sprintf('Server returned code: %d.', $result->getStatusCode()), 'debug');
+            } catch (\Exception $e) {
+                $result = false;
+                static::log(sprintf('Connection to server failed with message: %s.', $e->getMessage), 'error');
+            }
         } else {
             $result = false;
         }
@@ -118,7 +126,11 @@ class Server
     public static function getAllPlaylists()
     {
         try {
-            $result = static::query('playlists')->getBody()->getContents();
+            $result = static::query('playlists');
+
+            if ($result !== false) {
+                $result = $result->getBody()->getContents();
+            }
         } catch (ClientException $e) {
             $result = $e->getResponse()->getBody()->getContents();
         }
@@ -129,7 +141,11 @@ class Server
     public static function getPlaylistByUuid($uuid)
     {
         try {
-            $result = static::query('playlists/' . $uuid)->getBody()->getContents();
+            $result = static::query('playlists/' . $uuid);
+
+            if ($result !== false) {
+                $result = $result->getBody()->getContents();
+            }
         } catch (ClientException $e) {
             $result = $e->getResponse()->getBody()->getContents();
         }

@@ -33,6 +33,20 @@ class Client
     }
 
     /**
+     * Validate uuid
+     *
+     * @return boolean
+     * @throws \Dachande\T00nieBox\Exception\InvalidUuidException
+     */
+    protected function validateUuid()
+    {
+        if (!preg_match(Configure::read('App.uuidRegexp'), $this->uuid)) {
+            throw new InvalidUuidException('The supplied uuid is invalid');
+        }
+
+        return true;
+    }
+    /**
      * Main client
      *
      * @return void
@@ -40,18 +54,29 @@ class Client
     public function run()
     {
         $this->log('Running the client.', 'info');
-        if (!preg_match(Configure::read('App.uuidRegexp'), $this->uuid)) {
-            throw new InvalidUuidException('The supplied uuid is invalid');
-        }
 
+        // Validate uuid
+        $this->validateUuid();
+
+        // Compare with previous uuid.
+        // If uuids match, resume playback and exit.
         if (LastId::compare($this->uuid)) {
             // TODO: MPD resume
             return true;
         }
 
-        debug(Server::getAllPlaylists());
-        debug(Server::getPlaylistByUuid($this->uuid));
+        // Try to get playlist from server for the specified uuid.
+        $playlist = Server::getPlaylistByUuid($this->uuid);
 
-        LastId::set($this->uuid);
+        if ($playlist === false) {
+            // It looks like the server could not be reached.
+            // So we try to find a local copy of the playlist for that uuid.
+        } else {
+            // Playlist was successfully downloaded. We now need to check if
+            // the playlist is not empty.
+
+            // Write current uuid to lastId
+            LastId::set($this->uuid);
+        }
     }
 }
