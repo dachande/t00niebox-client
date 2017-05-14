@@ -1,8 +1,13 @@
 <?php
 namespace Dachande\T00nieBox;
 
+/**
+ * Playlist handling.
+ */
 class Playlist
 {
+    use \Cake\Log\LogTrait;
+
     /**
      * Holds the playlist array that came from the server
      *
@@ -11,32 +16,69 @@ class Playlist
     protected $list = [];
 
     /**
-     * File list that actually represents the playlist
+     * Initializes a playlist.
      *
-     * @param array $list
+     * @param mixed $list
      */
-    protected $files = [];
-
     public function __construct($list)
     {
-        $this->set($list);
-    }
-
-    public function set($list)
-    {
-        if (array_key_exists('playlist', $list) && $list['playlist'] !== null) {
-            $this->list = $list['playlist'];
+        if (is_array($list)) {
+            $this->log('Generating playlist object.', 'debug');
+            $this->setList($list);
+        } else {
+            $this->log('Generating empty playlist object.', 'warning');
         }
     }
 
-    public function getFilesFromList()
+    /**
+     * Set a new playlist list that has been retrieved from a server earlier.
+     *
+     * @param array $list
+     */
+    public function setList(array $list)
     {
-        return (array_key_exists('files_array', $this->list)) ? $this->list['files_array'] : [];
+        if (array_key_exists('playlist', $list)) {
+            if ($list['playlist'] !== null) {
+                $this->log('Playlist populated with new list.', 'debug');
+                $this->list = $list['playlist'];
+            } else {
+                $this->log('Playlist populated with empty list', 'warning');
+                $this->list = [];
+            }
+        } else {
+            $this->log('Playlist populated with new list but list format might be invalid.', 'warning');
+            $this->list = $list;
+        }
     }
 
+    /**
+     * Query t00niebox server to retrieve a playlist and returns
+     * a new playlist object.
+     *
+     * @param  string $uuid
+     * @return \Dachande\T00nieBox\Playlist
+     */
+    public static function initializeFromServerWithUuid($uuid)
+    {
+        $result = Server::getPlaylistByUuid($uuid);
+
+        return new static($result);
+    }
+
+    /**
+     * Get all files from a playlist list.
+     *
+     * @return array
+     */
     public function getFiles()
     {
-        return $this->files;
+        if (array_key_exists('files_array', $this->list)) {
+            return $this->list['files_array'];
+        } elseif (array_key_exists('files', $this->list)) {
+            return unserialize($this->list['files']);
+        }
+
+        return [];
     }
 
     /**

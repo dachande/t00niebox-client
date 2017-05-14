@@ -4,6 +4,9 @@ namespace Dachande\T00nieBox;
 use Cake\Core\Configure;
 use Dachande\T00nieBox\Exception\InvalidUuidException;
 
+/**
+ * The t00niebox client
+ */
 class Client
 {
     use \Cake\Log\LogTrait;
@@ -46,6 +49,7 @@ class Client
 
         return true;
     }
+
     /**
      * Main client
      *
@@ -66,19 +70,22 @@ class Client
         }
 
         // Try to get playlist from server for the specified uuid.
-        $playlist = Server::getPlaylistByUuid($this->uuid);
+        $playlist = Playlist::initializeFromServerWithUuid($this->uuid);
 
-        if ($playlist !== false) {
-            // Playlist was successfully downloaded. We now need to check if
-            // the playlist is not empty.
-            $playlist = new Playlist($playlist);
-            debug($playlist->getFilesFromList());
+        if (sizeof($playlist->getFiles())) {
+            // Playlist was successfully downloaded.
+
+            // TODO
+            // - Generate files list to be stored in a local playlist file playable by MPD
+            // - Use rsync to download the files from the server
+            // - Start playing the playlist through MPD
 
             // Write current uuid to lastId
-            // LastId::set($this->uuid);
+            LastId::set($this->uuid);
         } else {
-            // It looks like the server could not be reached.
-            // So we try to find a local copy of the playlist for that uuid.
+            // It looks like the server could not be reached or there is no playlist
+            // attached to the requested rfid uuid.
+            // So we try to find a local copy of the playlist for that uuid instead.
         }
     }
 }

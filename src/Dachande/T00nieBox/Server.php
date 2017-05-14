@@ -85,7 +85,7 @@ class Server
      * @param  boolean $forceServerCheck
      * @return \Psr\Http\Message\ResponseInterface
      */
-    protected static function query($endpoint, $method = 'GET')
+    public static function query($endpoint, $method = 'GET')
     {
         if (static::isReachable() === true) {
             $url = static::getURI() . '/' . $endpoint;
@@ -122,6 +122,15 @@ class Server
         return $protocol . '://' . $hostname . ':' . $port;
     }
 
+    /**
+     * Get all playlists from the server.
+     *
+     * In a default t00niebox implementation this method should not be used
+     * as it is currently only used for debugging purposes.
+     * It might be removed in the near future.
+     *
+     * @return array|null
+     */
     public static function getAllPlaylists()
     {
         try {
@@ -137,6 +146,12 @@ class Server
         return json_decode($result, true);
     }
 
+    /**
+     * Get a single playlist from the server by its uuid.
+     *
+     * @param  string $uuid
+     * @return array|null
+     */
     public static function getPlaylistByUuid($uuid)
     {
         try {
