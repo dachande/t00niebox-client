@@ -39,7 +39,7 @@ class Server
         $host = Configure::read('Server.host');
         $port = Configure::read('Server.port');
 
-        static::log(sprintf('Trying to reach the server at %s:%s.', $host, $port), 'debug');
+        static::log(sprintf('Server - Trying to reach the server at %s:%s.', $host, $port), 'debug');
 
         $ping = new Ping(Configure::read('Server.host'));
         $ping->setPort(Configure::read('Server.port'));
@@ -48,9 +48,9 @@ class Server
         $latency = $ping->ping('fsockopen');
 
         if ($latency !== false) {
-            static::log(sprintf('Server is reachable with a latency of %d.', $latency), 'debug');
+            static::log(sprintf('Server - Server is reachable with a latency of %d.', $latency), 'debug');
         } else {
-            static::log('Server is unreachable', 'debug');
+            static::log('Server - Server is unreachable', 'debug');
         }
 
         static::$isReachable = ($latency !== false) ? true : false;
@@ -90,16 +90,16 @@ class Server
         if (static::isReachable() === true) {
             $url = static::getURI() . '/' . $endpoint;
 
-            static::log(sprintf('Sending server request to %s', $url), 'debug');
+            static::log(sprintf('Server - Sending server request to %s', $url), 'debug');
 
             $client = new Client();
 
             try {
                 $result = $client->request($method, $url);
-                static::log(sprintf('Server returned code: %d.', $result->getStatusCode()), 'debug');
+                static::log(sprintf('Server - Server returned code: %d.', $result->getStatusCode()), 'debug');
             } catch (\Exception $e) {
                 $result = false;
-                static::log(sprintf('Connection to server failed with message: %s.', $e->getMessage), 'error');
+                static::log(sprintf('Server - Connection to server failed with message: %s.', $e->getMessage), 'error');
             }
         } else {
             $result = false;

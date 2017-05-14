@@ -23,10 +23,10 @@ class Playlist
     public function __construct($list)
     {
         if (is_array($list)) {
-            $this->log('Generating playlist object.', 'debug');
+            $this->log('Playlist - Generating playlist object.', 'debug');
             $this->setList($list);
         } else {
-            $this->log('Generating empty playlist object.', 'warning');
+            $this->log('Playlist - Generating empty playlist object.', 'warning');
         }
     }
 
@@ -39,14 +39,14 @@ class Playlist
     {
         if (array_key_exists('playlist', $list)) {
             if ($list['playlist'] !== null) {
-                $this->log('Playlist populated with new list.', 'debug');
+                $this->log('Playlist - Playlist populated with new list.', 'debug');
                 $this->list = $list['playlist'];
             } else {
-                $this->log('Playlist populated with empty list', 'warning');
+                $this->log('Playlist - Playlist populated with empty list', 'warning');
                 $this->list = [];
             }
         } else {
-            $this->log('Playlist populated with new list but list format might be invalid.', 'warning');
+            $this->log('Playlist - Playlist populated with new list but list format might be invalid.', 'warning');
             $this->list = $list;
         }
     }

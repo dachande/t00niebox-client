@@ -31,7 +31,7 @@ class Client
      */
     public function setUuid($uuid)
     {
-        $this->log(sprintf('Setting uuid to %s.', $uuid), 'debug');
+        $this->log(sprintf('Client - Setting uuid to %s.', $uuid), 'debug');
         $this->uuid = $uuid;
     }
 
@@ -57,7 +57,7 @@ class Client
      */
     public function run()
     {
-        $this->log('Running the client.', 'info');
+        $this->log('Client - Running the client.', 'info');
 
         // Validate uuid
         $this->validateUuid();
