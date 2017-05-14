@@ -86,6 +86,10 @@ class Client
             // It looks like the server could not be reached or there is no playlist
             // attached to the requested rfid uuid.
             // So we try to find a local copy of the playlist for that uuid instead.
+
+            // TODO
+            // - Check for local playlist file for that uuid
+            // - Start playing the playlist through MPD if found and set lastId.
         }
     }
 }
