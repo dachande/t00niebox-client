@@ -21,6 +21,8 @@ class Client
      */
     public function __construct($uuid)
     {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
         $this->setUuid($uuid);
     }
 
@@ -31,7 +33,9 @@ class Client
      */
     public function setUuid($uuid)
     {
-        $this->log(sprintf('Client - Setting uuid to %s.', $uuid), 'debug');
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
+        $this->log(sprintf('Client - Setting uuid to %s.', $uuid), 'info');
         $this->uuid = $uuid;
     }
 
@@ -43,6 +47,8 @@ class Client
      */
     protected function validateUuid()
     {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
         if (!preg_match(Configure::read('App.uuidRegexp'), $this->uuid)) {
             throw new InvalidUuidException('The supplied uuid is invalid');
         }
@@ -57,7 +63,9 @@ class Client
      */
     public function run()
     {
-        $this->log('Client - Running the client.', 'info');
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
+        $this->log('Client - Running the client.', 'notice');
 
         // Validate uuid
         $this->validateUuid();

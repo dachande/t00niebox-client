@@ -10,12 +10,14 @@ class LastId
 
     public static function get()
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         $lastIdFile = Configure::read('App.lastIdFile');
 
-        static::log(sprintf('LastId - LastId - Trying to read lastId from file %s.', $lastIdFile), 'debug');
+        static::log(sprintf('LastId - Trying to read lastId from file %s.', $lastIdFile), 'info');
 
         if (!file_exists($lastIdFile)) {
-            static::log(sprintf('LastId - File %s does not exist.', $lastIdFile), 'debug');
+            static::log(sprintf('LastId - File %s does not exist.', $lastIdFile), 'info');
 
             return null;
         }
@@ -23,7 +25,7 @@ class LastId
         $stream = new Stream(fopen($lastIdFile, 'r'));
         $lastId = $stream->getContent();
 
-        static::log(sprintf('LastId - LastId is %s.', $lastId), 'debug');
+        static::log(sprintf('LastId - LastId is %s.', $lastId), 'info');
 
         $stream->close();
 
@@ -32,9 +34,11 @@ class LastId
 
     public static function set($lastId)
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         $lastIdFile = Configure::read('App.lastIdFile');
 
-        static::log(sprintf('LastId - Writing lastId %s to file %s.', $lastId, $lastIdFile), 'debug');
+        static::log(sprintf('LastId - Writing lastId %s to file %s.', $lastId, $lastIdFile), 'info');
 
         $stream = new Stream(fopen($lastIdFile, 'w'));
         $stream->write($lastId);
@@ -43,15 +47,17 @@ class LastId
 
     public static function compare($id)
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         $lastId = static::get();
 
-        static::log(sprintf('LastId - Comparing uuid %s with lastId %s.', $id, $lastId), 'debug');
+        static::log(sprintf('LastId - Comparing uuid %s with lastId %s.', $id, $lastId), 'info');
 
         if ($id === $lastId) {
-            static::log('LastId - MATCH!', 'debug');
+            static::log('LastId - MATCH!', 'info');
             return true;
         } else {
-            static::log('LastId - MISMATCH!', 'debug');
+            static::log('LastId - MISMATCH!', 'info');
             return false;
         }
     }

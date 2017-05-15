@@ -22,8 +22,10 @@ class Playlist
      */
     public function __construct($list)
     {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
         if (is_array($list)) {
-            $this->log('Playlist - Generating playlist object.', 'debug');
+            $this->log('Playlist - Generating playlist object.', 'info');
             $this->setList($list);
         } else {
             $this->log('Playlist - Generating empty playlist object.', 'warning');
@@ -37,9 +39,11 @@ class Playlist
      */
     public function setList(array $list)
     {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
         if (array_key_exists('playlist', $list)) {
             if ($list['playlist'] !== null) {
-                $this->log('Playlist - Playlist populated with new list.', 'debug');
+                $this->log('Playlist - Playlist populated with new list.', 'info');
                 $this->list = $list['playlist'];
             } else {
                 $this->log('Playlist - Playlist populated with empty list', 'warning');
@@ -60,6 +64,8 @@ class Playlist
      */
     public static function initializeFromServerWithUuid($uuid)
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         $result = Server::getPlaylistByUuid($uuid);
 
         return new static($result);
@@ -72,6 +78,8 @@ class Playlist
      */
     public function getFiles()
     {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
         if (array_key_exists('files_array', $this->list)) {
             return $this->list['files_array'];
         } elseif (array_key_exists('files', $this->list)) {
@@ -92,6 +100,8 @@ class Playlist
      */
     public static function generateFromRsyncOutput($rsyncOutput)
     {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
         $input = explode("\n", $rsyncOutput);
         $output = [];
 

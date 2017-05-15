@@ -72,9 +72,14 @@ return [
 
     'Log' => [
         'debug' => [
-            'className' => 'Cake\Log\Engine\SyslogLog',
-            'levels' => ['error', 'warning', 'notice', 'info', 'debug'],
-            'format' => 't00niebox Client - %s: %s',
-        ]
+            'className' => 'Cake\Log\Engine\ConsoleLog',
+            'levels' => ['emergency', 'alert', 'critical', 'error', 'warning', 'notice', 'info', 'debug'],
+        ],
+    ],
+
+    'Console' => [
+        'styles' => [
+            'debug' => ['text' => 'magenta'],
+        ],
     ],
 ];

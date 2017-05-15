@@ -36,10 +36,12 @@ class Server
      */
     public static function checkReachability()
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         $host = Configure::read('Server.host');
         $port = Configure::read('Server.port');
 
-        static::log(sprintf('Server - Trying to reach the server at %s:%s.', $host, $port), 'debug');
+        static::log(sprintf('Server - Trying to reach the server at %s:%s.', $host, $port), 'info');
 
         $ping = new Ping(Configure::read('Server.host'));
         $ping->setPort(Configure::read('Server.port'));
@@ -48,9 +50,9 @@ class Server
         $latency = $ping->ping('fsockopen');
 
         if ($latency !== false) {
-            static::log(sprintf('Server - Server is reachable with a latency of %d.', $latency), 'debug');
+            static::log(sprintf('Server - Server is reachable with a latency of %d.', $latency), 'info');
         } else {
-            static::log('Server - Server is unreachable', 'debug');
+            static::log('Server - Server is unreachable', 'info');
         }
 
         static::$isReachable = ($latency !== false) ? true : false;
@@ -68,6 +70,8 @@ class Server
      */
     public static function isReachable($recheck = false)
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         if ($recheck === true || static::$isReachable === null) {
             return static::checkReachability();
         }
@@ -87,19 +91,21 @@ class Server
      */
     public static function query($endpoint, $method = 'GET')
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         if (static::isReachable() === true) {
             $url = static::getURI() . '/' . $endpoint;
 
-            static::log(sprintf('Server - Sending server request to %s', $url), 'debug');
+            static::log(sprintf('Server - Sending server request to %s', $url), 'notice');
 
             $client = new Client();
 
             try {
                 $result = $client->request($method, $url);
-                static::log(sprintf('Server - Server returned code: %d.', $result->getStatusCode()), 'debug');
+                static::log(sprintf('Server - Server returned code: %d.', $result->getStatusCode()), 'info');
             } catch (\Exception $e) {
                 $result = false;
-                static::log(sprintf('Server - Connection to server failed with message: %s.', $e->getMessage), 'error');
+                static::log(sprintf('Server - Connection to server failed with message: %s.', $e->getMessage), 'warning');
             }
         } else {
             $result = false;
@@ -115,6 +121,8 @@ class Server
      */
     protected static function getURI()
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         $protocol = Configure::read('Server.protocol');
         $hostname = Configure::read('Server.host');
         $port = Configure::read('Server.port');
@@ -133,6 +141,8 @@ class Server
      */
     public static function getAllPlaylists()
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         try {
             $result = static::query('playlists');
 
@@ -154,6 +164,8 @@ class Server
      */
     public static function getPlaylistByUuid($uuid)
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         try {
             $result = static::query('playlists/' . $uuid);
 
