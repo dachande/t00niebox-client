@@ -68,12 +68,13 @@ return [
             ],
         ],
 
-        'Log' => [
-            'debug' => [
-                'className' => 'Cake\Log\Engine\SyslogLog',
-                'levels' => ['error', 'warning', 'notice', 'info', 'debug'],
-                'format' => 't00niebox Client - %s: %s',
-            ]
-        ],
+    ],
+
+    'Log' => [
+        'debug' => [
+            'className' => 'Cake\Log\Engine\SyslogLog',
+            'levels' => ['error', 'warning', 'notice', 'info', 'debug'],
+            'format' => 't00niebox Client - %s: %s',
+        ]
     ],
 ];
