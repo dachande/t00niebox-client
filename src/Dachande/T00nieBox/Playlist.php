@@ -28,7 +28,7 @@ class Playlist
             $this->log('Playlist - Generating playlist object.', 'info');
             $this->setList($list);
         } else {
-            $this->log('Playlist - Generating empty playlist object.', 'warning');
+            $this->log('Playlist - Generating empty playlist object.', 'info');
         }
     }
 
@@ -46,7 +46,7 @@ class Playlist
                 $this->log('Playlist - Playlist populated with new list.', 'info');
                 $this->list = $list['playlist'];
             } else {
-                $this->log('Playlist - Playlist populated with empty list', 'warning');
+                $this->log('Playlist - Playlist populated with empty list', 'info');
                 $this->list = [];
             }
         } else {
@@ -87,6 +87,11 @@ class Playlist
         }
 
         return [];
+    }
+
+    public function save()
+    {
+
     }
 
     /**

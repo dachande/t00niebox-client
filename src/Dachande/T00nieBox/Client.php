@@ -77,11 +77,17 @@ class Client
             return true;
         }
 
-        // Try to get playlist from server for the specified uuid.
-        $playlist = Playlist::initializeFromServerWithUuid($this->uuid);
+        // Try to get card from server for the specified uuid.
+        try {
+            $card = Card::create(Server::getCardByUuid($this->uuid));
+        } catch (\InvalidArgumentException $e) {
+            $this->log($e->getMessage(), 'warning');
 
-        if (sizeof($playlist->getFiles())) {
-            // Playlist was successfully downloaded.
+            $card = new Card($this->uuid, 'Empty playlist');
+        }
+
+        if (sizeof($card->getFiles())) {
+            // Card was successfully downloaded.
 
             // TODO
             // - Generate files list to be stored in a local playlist file playable by MPD
@@ -91,7 +97,7 @@ class Client
             // Write current uuid to lastId
             LastId::set($this->uuid);
         } else {
-            // It looks like the server could not be reached or there is no playlist
+            // It looks like the server could not be reached or there is no card
             // attached to the requested rfid uuid.
             // So we try to find a local copy of the playlist for that uuid instead.
 

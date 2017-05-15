@@ -52,7 +52,7 @@ class Server
         if ($latency !== false) {
             static::log(sprintf('Server - Server is reachable with a latency of %d.', $latency), 'info');
         } else {
-            static::log('Server - Server is unreachable', 'info');
+            static::log('Server - Server is unreachable', 'warning');
         }
 
         static::$isReachable = ($latency !== false) ? true : false;
@@ -139,12 +139,12 @@ class Server
      *
      * @return array|null
      */
-    public static function getAllPlaylists()
+    public static function getAllCards()
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 
         try {
-            $result = static::query('playlists');
+            $result = static::query('cards');
 
             if ($result !== false) {
                 $result = $result->getBody()->getContents();
@@ -162,12 +162,12 @@ class Server
      * @param  string $uuid
      * @return array|null
      */
-    public static function getPlaylistByUuid($uuid)
+    public static function getCardByUuid($uuid)
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 
         try {
-            $result = static::query('playlists/' . $uuid);
+            $result = static::query('cards/' . $uuid);
 
             if ($result !== false) {
                 $result = $result->getBody()->getContents();
