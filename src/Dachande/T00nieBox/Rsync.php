@@ -24,7 +24,7 @@ class Rsync
      *
      * @param  boolean $listOnly
      */
-    public static function initialize($listOnly = false, $filesFrom = null)
+    public static function initialize($sync = true, $filesFrom = null)
     {
         // Set Rsync source
         $source = Configure::read('Rsync.source');

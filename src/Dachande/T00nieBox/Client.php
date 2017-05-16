@@ -107,10 +107,10 @@ class Client
             $stream = new Stream(fopen($filesFromFilename, 'w'));
             $stream->write($filesList);
             $stream->close();
-            Rsync::initialize(true, $filesFromFilename);
+            Rsync::initialize(false, $filesFromFilename);
             $rsyncOutput = Rsync::execute();
             debug(Playlist::generateFromRsyncOutput($rsyncOutput));
-            Rsync::initialize(false, $filesFromFilename);
+            Rsync::initialize(true, $filesFromFilename);
             Rsync::execute(false);
             if (file_exists($filesFromFilename)) {
                 unlink($filesFromFilename);
