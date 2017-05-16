@@ -22,9 +22,9 @@ class Rsync
      * This will not execute the rsync command. To execute the command use the execute() method on
      * the returned object.
      *
-     * @param  boolean $withTarget
+     * @param  boolean $listOnly
      */
-    public static function initialize($withTarget = true)
+    public static function initialize($listOnly = false, $filesFrom = null)
     {
         // Set Rsync source
         $source = Configure::read('Rsync.source');
@@ -34,21 +34,15 @@ class Rsync
         }
 
         // Set Rsync target
-        if ($withTarget === true) {
-            $target = Configure::read('Rsync.target');
-            $targetUsername = Configure::read('Rsync.targetUsername');
-            if ($targetUsername !== null) {
-                $target = $targetUsername . '@' . $target;
-            }
+        $target = Configure::read('Rsync.target');
+        $targetUsername = Configure::read('Rsync.targetUsername');
+        if ($targetUsername !== null) {
+            $target = $targetUsername . '@' . $target;
         }
 
         // Initialize rsync
         $rsync = new BaseRsync();
-        if ($withTarget === true) {
-            static::$rsyncCommand = $rsync->getCommand($source, $target);
-        } else {
-            static::$rsyncCommand = $rsync->getCommand($source, '');
-        }
+        static::$rsyncCommand = $rsync->getCommand($source, $target);
 
         // Add options
         $options = Configure::read('Rsync.config.options');
@@ -71,6 +65,14 @@ class Rsync
                 }
             }
         }
+
+        if ($listOnly === true) {
+            static::$rsyncCommand->addArgument('list-only');
+        }
+
+        if ($filesFrom !== null) {
+            static::$rsyncCommand->addArgument('files-from', $filesFrom);
+        }
     }
 
     /**
@@ -82,24 +84,28 @@ class Rsync
      *
      * @return string
      */
-    public static function execute()
+    public static function execute($returnOutput = true)
     {
         if (static::$rsyncCommand === null) {
             throw new \Dachande\T00nieBox\Exception\UninitializedException("Initialize Rsync Command before execution.");
         }
 
-        $output = '';
-        $command = static::$rsyncCommand->getCommand();
+        if ($returnOutput === true) {
+            $output = '';
+            $command = static::$rsyncCommand->getCommand();
 
-        if (($fp = popen($command, "r"))) {
-            while (!feof($fp)) {
-                $output .= fread($fp, 1024);
+            if (($fp = popen($command, "r"))) {
+                while (!feof($fp)) {
+                    $output .= fread($fp, 1024);
+                }
+                fclose($fp);
+            } else {
+                throw new \InvalidArgumentException("Cannot execute command: '" .$command. "'");
             }
-            fclose($fp);
-        } else {
-            throw new \InvalidArgumentException("Cannot execute command: '" .$command. "'");
-        }
 
-        return $output;
+            return $output;
+        } else {
+            static::$rsyncCommand->execute(true);
+        }
     }
 }

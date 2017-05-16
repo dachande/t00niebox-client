@@ -91,7 +91,6 @@ class Playlist
 
     public function save()
     {
-
     }
 
     /**
@@ -105,7 +104,7 @@ class Playlist
      */
     public static function generateFromRsyncOutput($rsyncOutput)
     {
-        $this->log(sprintf('%s', __METHOD__), 'debug');
+        static::log(sprintf('%s', __METHOD__), 'debug');
 
         $input = explode("\n", $rsyncOutput);
         $output = [];

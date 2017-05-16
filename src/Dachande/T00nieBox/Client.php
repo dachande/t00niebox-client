@@ -3,6 +3,8 @@ namespace Dachande\T00nieBox;
 
 use Cake\Core\Configure;
 use Dachande\T00nieBox\Exception\InvalidUuidException;
+use Streamer\Stream;
+use Cake\Utility\Security;
 
 /**
  * The t00niebox client
@@ -94,8 +96,28 @@ class Client
             // - Use rsync to download the files from the server
             // - Start playing the playlist through MPD
 
+            /**
+             * The following block of code is just a quick and dirty implementation of my
+             * playlist generation and file synchronization using rsync.
+             * In the next step the code will be beautyfied and put into the Playlist class.
+             */
+            $files = $card->getFiles();
+            $filesList = implode("\n", $files);
+            $filesFromFilename = ROOT . DS . Security::hash($filesList, 'md5') . '.txt';
+            $stream = new Stream(fopen($filesFromFilename, 'w'));
+            $stream->write($filesList);
+            $stream->close();
+            Rsync::initialize(true, $filesFromFilename);
+            $rsyncOutput = Rsync::execute();
+            debug(Playlist::generateFromRsyncOutput($rsyncOutput));
+            Rsync::initialize(false, $filesFromFilename);
+            Rsync::execute(false);
+            if (file_exists($filesFromFilename)) {
+                unlink($filesFromFilename);
+            }
+
             // Write current uuid to lastId
-            LastId::set($this->uuid);
+            // LastId::set($this->uuid);
         } else {
             // It looks like the server could not be reached or there is no card
             // attached to the requested rfid uuid.
