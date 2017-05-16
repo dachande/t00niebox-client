@@ -105,7 +105,7 @@ class Server
                 static::log(sprintf('Server - Server returned code: %d.', $result->getStatusCode()), 'info');
             } catch (\Exception $e) {
                 $result = false;
-                static::log(sprintf('Server - Connection to server failed with message: %s.', $e->getMessage), 'warning');
+                static::log(sprintf('Server - Connection to server failed with message: %s.', $e->getMessage()), 'warning');
             }
         } else {
             $result = false;
