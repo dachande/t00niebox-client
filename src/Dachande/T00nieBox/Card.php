@@ -69,7 +69,7 @@ class Card
         }
 
         if (array_key_exists('files_array', $card['card'])) {
-            $files = $card['card']['files'];
+            $files = $card['card']['files_array'];
         } elseif (array_key_exists('files', $card['card'])) {
             $files = unserialize($card['card']['files']);
         } else {
