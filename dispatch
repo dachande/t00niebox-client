@@ -9,4 +9,6 @@ if (empty($argv[1])) {
 }
 
 $client = new \Dachande\T00nieBox\Client($argv[1]);
-$client->run();
+$retVal = $client->run();
+
+exit((int)!$retVal);

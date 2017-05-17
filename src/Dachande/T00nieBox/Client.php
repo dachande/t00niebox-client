@@ -75,7 +75,9 @@ class Client
         // Compare with previous uuid.
         // If uuids match, resume playback and exit.
         if (LastId::compare($this->uuid)) {
-            // TODO: MPD resume
+            $this->log('Client - Resuming playback.', 'notice');
+
+            Mpc::command(Mpc::CMD_PLAY);
             return true;
         }
 
@@ -88,44 +90,49 @@ class Client
             $card = new Card($this->uuid, 'Empty playlist');
         }
 
-        if (sizeof($card->getFiles())) {
-            // Card was successfully downloaded.
+        // Check if card was successfully downloaded.
+        if ($card->hasFiles()) {
+            // Get playlist object by feeding it with the file list from downloaded card.
+            $playlist = Playlist::create($card->getFiles(), $this->uuid);
 
-            // TODO
-            // - Generate files list to be stored in a local playlist file playable by MPD
-            // - Use rsync to download the files from the server
-            // - Start playing the playlist through MPD
+            // Load playlist from remote and save playlist file
+            if ($playlist->load(true) !== false) {
+                // Synchronize audio files
+                $playlist->sync();
 
-            /**
-             * The following block of code is just a quick and dirty implementation of my
-             * playlist generation and file synchronization using rsync.
-             * In the next step the code will be beautyfied and put into the Playlist class.
-             */
-            $files = $card->getFiles();
-            $filesList = implode("\n", $files);
-            $filesFromFilename = ROOT . DS . Security::hash($filesList, 'md5') . '.txt';
-            $stream = new Stream(fopen($filesFromFilename, 'w'));
-            $stream->write($filesList);
-            $stream->close();
-            Rsync::initialize(false, $filesFromFilename);
-            $rsyncOutput = Rsync::execute();
-            debug(Playlist::generateFromRsyncOutput($rsyncOutput));
-            Rsync::initialize(true, $filesFromFilename);
-            Rsync::execute(false);
-            if (file_exists($filesFromFilename)) {
-                unlink($filesFromFilename);
+                // Clear current playlist and add a new one
+                $playlistFile = $playlist->getPlaylistFilename();
+                $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
+                Mpc::playNewPlaylist($playlistFile);
+
+                // Write current uuid to lastId
+                LastId::set($this->uuid);
+
+                return true;
+            } else {
+                $this->log(sprintf('Client - Could not find playlist file for uuid %s.', $this->uuid), 'warning');
+
+                return false;
             }
-
-            // Write current uuid to lastId
-            // LastId::set($this->uuid);
         } else {
             // It looks like the server could not be reached or there is no card
             // attached to the requested rfid uuid.
             // So we try to find a local copy of the playlist for that uuid instead.
+            if (Playlist::exists($this->uuid)) {
+                // Clear current playlist and add a new one
+                $playlistFile = Playlist::createFilenameFromUuid($this->uuid);
+                $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
+                Mpc::playNewPlaylist($playlistFile);
 
-            // TODO
-            // - Check for local playlist file for that uuid
-            // - Start playing the playlist through MPD if found and set lastId.
+                // Write current uuid to lastId
+                LastId::set($this->uuid);
+
+                return true;
+            } else {
+                $this->log(sprintf('Client - Could not find playlist file for uuid %s.', $this->uuid), 'warning');
+
+                return false;
+            }
         }
     }
 }
