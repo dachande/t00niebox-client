@@ -7,6 +7,8 @@ use AFM\Rsync\Command as RsyncCommand;
 
 class Rsync
 {
+    use \Cake\Log\LogTrait;
+
     /**
      * @var \AFM\Rsync\Command
      */
@@ -15,17 +17,20 @@ class Rsync
     /**
      * Initialize Rsync
      *
-     * This method does a full rsync command initialization. If you set $withTarget to false
-     * the target will be omitted from the rsync command which can be use for just listing
-     * remote files instead of synchronizing them.
+     * This method does a full rsync command initialization. If you set $sync to false
+     * the rsync command is used for listing the source files instead of synchronizing them
+     * with the target.
      *
      * This will not execute the rsync command. To execute the command use the execute() method on
      * the returned object.
      *
-     * @param  boolean $listOnly
+     * @param boolean $sync
+     * @param string $filesFrom
      */
     public static function initialize($sync = true, $filesFrom = null)
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         // Set Rsync source
         $source = Configure::read('Rsync.source');
         $sourceUsername = Configure::read('Rsync.sourceUsername');
@@ -66,7 +71,7 @@ class Rsync
             }
         }
 
-        if ($listOnly === true) {
+        if ($sync === false) {
             static::$rsyncCommand->addArgument('list-only');
         }
 
@@ -76,16 +81,19 @@ class Rsync
     }
 
     /**
-     * Execute the rsync command and return its output
+     * Execute the rsync command
      *
-     * As the rsync command objects execute() method just prints out the result of the
-     * rsync command, this method is used to address this issue. Instead of just printing
-     * out the result, it is stored in a variable and returned in the end.
+     * If $returnOutput is set to false the results of the rsync command will be
+     * piped to stdout using a simple shell_exec() call. Otherwise the output
+     * will be returned as a string.
      *
-     * @return string
+     * @param boolean $returnOutput
+     * @return string|void
      */
     public static function execute($returnOutput = true)
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         if (static::$rsyncCommand === null) {
             throw new \Dachande\T00nieBox\Exception\UninitializedException("Initialize Rsync Command before execution.");
         }
