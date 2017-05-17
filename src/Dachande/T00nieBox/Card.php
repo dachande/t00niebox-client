@@ -37,7 +37,7 @@ class Card
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        $this->log(sprintf('Creating new card with uuid "%s" and title "%s".', $uuid, $title), 'info');
+        $this->log(sprintf('Card - Creating new card with uuid "%s" and title "%s".', $uuid, $title), 'info');
 
         $this->uuid = $uuid;
         $this->title = $title;
@@ -112,6 +112,18 @@ class Card
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
         return $this->files;
+    }
+
+    /**
+     * Get files/folders for playlist
+     *
+     * @return array
+     */
+    public function hasFiles()
+    {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
+        return (sizeof($this->files) > 0) ? true : false;
     }
 
     /**
