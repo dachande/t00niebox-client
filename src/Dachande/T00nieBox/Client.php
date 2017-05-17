@@ -101,7 +101,7 @@ class Client
                 $playlist->sync();
 
                 // Clear current playlist and add a new one
-                $playlistFile = $playlist->getPlaylistFilename();
+                $playlistFile = $playlist->getFilename();
                 $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
                 Mpc::playNewPlaylist($playlistFile);
 
@@ -120,7 +120,7 @@ class Client
             // So we try to find a local copy of the playlist for that uuid instead.
             if (Playlist::exists($this->uuid)) {
                 // Clear current playlist and add a new one
-                $playlistFile = Playlist::createFilenameFromUuid($this->uuid);
+                $playlistFile = Playlist::getFilenameFromUuid($this->uuid);
                 $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
                 Mpc::playNewPlaylist($playlistFile);
 

@@ -26,6 +26,11 @@ class Playlist
      */
     protected $files = [];
 
+    /**
+     * List of audio files as a string to be stored in a playlist file.
+     *
+     * @var string
+     */
     protected $playlist = '';
 
     /**
@@ -127,11 +132,16 @@ class Playlist
         $stream->close();
     }
 
-    public function getPlaylistFilename()
+    /**
+     * Returns the playlist filename.
+     *
+     * @return string
+     */
+    public function getFilename()
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        return static::createFilenameFromUuid($this->uuid);
+        return static::getFilenameFromUuid($this->uuid);
     }
 
     /**
@@ -140,7 +150,7 @@ class Playlist
      * @param boolean $fullPath
      * @return string
      */
-    public static function createFilenameFromUuid($uuid, $fullPath = false)
+    public static function getFilenameFromUuid($uuid, $fullPath = false)
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 
@@ -149,25 +159,33 @@ class Playlist
         return ($fullPath === true) ? $filename : basename($filename);
     }
 
-    public function state()
-    {
-        $this->log(sprintf('%s', __METHOD__), 'debug');
-
-        return file_exists(static::createFilenameFromUuid($this->uuid, true));
-    }
-
+    /**
+     * Check if playlist file exists.
+     *
+     * @param  string $uuid
+     * @return boolean
+     */
     public static function exists($uuid = '')
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 
-        return file_exists(static::createFilenameFromUuid($uuid, true));
+        return file_exists(static::getFilenameFromUuid($uuid, true));
     }
 
+    /**
+     * Load playlist from remote using rsync
+     *
+     * By setting $save to true the method will call the save() method
+     * for you to store the retrieved playlist in the playlist file.
+     *
+     * @param  boolean $save
+     * @return string|boolean
+     */
     public function load($save = false)
     {
         Rsync::initialize(false, $this->tempFilesFromFilename);
         $rsyncOutput = Rsync::execute();
-        $this->playlist = $this->generateFromRsyncOutput($rsyncOutput);
+        $this->playlist = $this->generatePlaylistFromRsyncOutput($rsyncOutput);
 
         if ($save === true) {
             return $this->save();
@@ -179,14 +197,14 @@ class Playlist
     /**
      * Save playlist to file.
      *
-     * @return void
+     * @return string|boolean
      */
     public function save()
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
         if (!empty($this->playlist)) {
-            $stream = new Stream(fopen(static::createFilenameFromUuid($this->uuid, true), 'w'));
+            $stream = new Stream(fopen(static::getFilenameFromUuid($this->uuid, true), 'w'));
             $stream->write($this->playlist);
             $stream->close();
 
@@ -196,6 +214,11 @@ class Playlist
         return false;
     }
 
+    /**
+     * Download/synchronize audio files from remote.
+     *
+     * @return void
+     */
     public function sync()
     {
         Rsync::initialize(true, $this->tempFilesFromFilename);
@@ -211,7 +234,7 @@ class Playlist
      * @param  string $rsyncOutput
      * @return string
      */
-    protected function generateFromRsyncOutput($rsyncOutput)
+    protected function generatePlaylistFromRsyncOutput($rsyncOutput)
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
