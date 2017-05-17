@@ -67,7 +67,10 @@ return [
                 ],
             ],
         ],
+    ],
 
+    'Mpd' => [
+        'playlists' => '/tmp',
     ],
 
     'Log' => [

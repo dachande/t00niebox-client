@@ -1,5 +1,5 @@
 <?php
-namespace Dachande\Mpc;
+namespace Dachande\T00nieBox;
 
 class Mpc
 {
@@ -57,4 +57,16 @@ class Mpc
     const CMD_PLAYLISTSAVE = "save";
     const CMD_CLOSE = "close";
     const CMD_KILL = "kill";
+
+    public static function command($command, $argument = '')
+    {
+        // Stub
+    }
+
+    public static function playNewPlaylist($playlist)
+    {
+        static::command(static::CMD_PL_CLEAR);
+        static::command(static::CMD_PL_ADD, $playlist);
+        static::command(static::CMD_PLAY);
+    }
 }
