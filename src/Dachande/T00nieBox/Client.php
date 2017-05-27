@@ -3,7 +3,6 @@ namespace Dachande\T00nieBox;
 
 use Cake\Core\Configure;
 use Dachande\T00nieBox\Exception\InvalidUuidException;
-use Streamer\Stream;
 use Cake\Utility\Security;
 
 /**

@@ -1,8 +1,14 @@
 <?php
 namespace Dachande\T00nieBox;
 
+use Cake\Core\Configure;
+
+use Streamer\Stream;
+
 class Mpc
 {
+    use \Cake\Log\LogTrait;
+
     // Responses
     const RES_OK = "OK";
     const RES_ERR = "ACK";
@@ -58,13 +64,213 @@ class Mpc
     const CMD_CLOSE = "close";
     const CMD_KILL = "kill";
 
-    public static function command($command, $argument = '')
+    /**
+     * Server connection state
+     *
+     * @var boolean
+     */
+    protected static $isConnected = false;
+
+    /**
+     * Authentication state
+     *
+     * @var boolean
+     */
+    protected static $isAuthenticated = false;
+
+    /**
+     * Server connection
+     *
+     * @var \Streamer\Stream
+     */
+    protected static $server = null;
+
+    /**
+     * Connect to the MPD server
+     *
+     * @param boolean $reconnect
+     * @return boolean
+     */
+    public static function connect($reconnect = false)
     {
-        // Stub
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
+        if (static::$server === null || static::$isConnected === false || $reconnect === true) {
+            // Close the server connection if it is open
+            if (static::$server !== null || static::$isConnected === true) {
+                static::disconnect();
+            }
+
+            // Connect
+            $serverAddress = Configure::read('Mpd.host') . ':' . Configure::read('Mpd.port');
+            static::log(sprintf('Mpc - Connecting to MPD server at %s', $serverAddress), 'info');
+            static::$server = new Stream(stream_socket_client('tcp://' . Configure::read('Mpd.host') . ':' . Configure::read('Mpd.port')));
+
+            $message = static::$server->read();
+
+            if (strncmp(static::RES_OK, $message, strlen(static::RES_OK)) === 0) {
+                static::log('Mpc - Connection established.', 'info');
+                static::$isConnected = true;
+                static::$isAuthenticated = false;
+                return true;
+            } else {
+                static::log('Mpc - Connection failed.', 'warning');
+                return false;
+            }
+        }
     }
 
+    /**
+     * Disconnect from MPD server
+     *
+     * @return void
+     */
+    public static function disconnect()
+    {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
+        if (static::$server !== null && static::$server instanceof \Streamer\Stream) {
+            static::$server->close();
+            static::$isConnected = false;
+            static::$isAuthenticated = false;
+        }
+
+        static::$server = null;
+    }
+
+    /**
+     * Flattens and converts command argument list
+     *
+     * @param array $array
+     * @return array
+     */
+    protected static function condense(array $args)
+    {
+        $result = [];
+
+        foreach (array_values($args) as $value) {
+            if (is_scalar($value)) {
+                $result[] = $value;
+            } elseif (is_array($value)) {
+                $result = array_merge($result, static::condense($value));
+            } elseif (is_object($value)) {
+                $result = array_merge($result, static::condense((array)$value));
+            } else {
+                throw new \Exception("Unrecognized object type");
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Dispatch a command to the MPD server
+     *
+     * @return boolean
+     */
+    protected static function command()
+    {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
+        // Connect if not already connected
+        if (static::$isConnected === false) {
+            static::connect();
+        }
+
+        // Get arguments and method
+        $args = func_get_args();
+        $method = array_shift($args);
+        $args = static::condense($args);
+
+        // Prepare arguments
+        array_walk($args, function (&$value, $key) {
+            $value = str_replace('"', '\"', $value);
+            $value = str_replace("'", "\\'", $value);
+            $value = '"' . $value . '"';
+        });
+
+        // Prepare command
+        $command = trim($method . ' ' . implode(' ', $args)) . "\n";
+
+        static::log(sprintf('Mpc - Dispatching command "%s" with arguments %s.', $method, implode('|', $args)), 'debug');
+
+        // Send command to server
+        static::$server->write($command);
+
+        // Receive Response
+        $response = static::$server->read();
+
+        static::log(sprintf('Mpc - Server response: "%s".', trim(preg_replace('/\s\s+/', ' ', $response))), 'debug');
+
+        return (strncmp(static::RES_OK, $response, strlen(static::RES_OK)) === 0) ? true : false;
+    }
+
+    /**
+     * Authenticate at the MPD server.
+     *
+     * Authentication is required even if the server does not need a password
+     * to make sure we have read access to the server at least.
+     *
+     * @return boolean
+     */
+    public static function authenticate()
+    {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
+        if (static::$isAuthenticated === true) {
+            return true;
+        }
+
+        if (Configure::check('Mpd.password') === true) {
+            static::log('Mpc - Authenticating with password', 'debug');
+            if (static::command(static::CMD_PWD, Configure::read('Mpd.password')) === false) {
+                static::log('Mpc - Password authentication failed', 'error');
+
+                static::disconnect();
+                return false;
+            }
+
+            static::log('Mpc - Successfully authenticated.', 'debug');
+
+            if (static::update() === false) {
+                static::log('Mpc - Password does not have read access.', 'error');
+
+                static::disconnect();
+                return false;
+            }
+        } else {
+            if (static::update() === false) {
+                static::log('Mpc - Password required to access server', 'error');
+
+                static::disconnect();
+                return false;
+            }
+
+            static::log('Mpc - Successfully authenticated.', 'debug');
+        }
+
+        static::$isAuthenticated = true;
+        return true;
+    }
+
+    public static function update()
+    {
+        // TODO: Add logic to update server information locally.
+        return true;
+    }
+
+    /**
+     * Play new playlist.
+     *
+     * This will clear the current playlist being played, adds a new Playlist
+     * and starts playback of the new playlist.
+     *
+     * @param string $playlist
+     */
     public static function playNewPlaylist($playlist)
     {
+        // TODO: Check commands to send to server to play a new playlist
+
         static::command(static::CMD_PL_CLEAR);
         static::command(static::CMD_PL_ADD, $playlist);
         static::command(static::CMD_PLAY);
