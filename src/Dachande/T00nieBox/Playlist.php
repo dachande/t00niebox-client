@@ -128,7 +128,13 @@ class Playlist
 
         $this->log(sprintf('Playlist - Writing file list to temporary file. (%s)', basename($this->tempFilesFromFilename)), 'info');
         $stream = new Stream(fopen($this->tempFilesFromFilename, 'w'));
-        $stream->write($this->filesToString());
+
+        try {
+            $stream->write($this->filesToString());
+        } catch (\Exception $e) {
+            $this->log(sprintf('Playlist - Error while writing to file %s. (%s)', basename($this->tempFilesFromFilename), $e->getMessage()), 'error');
+        }
+
         $stream->close();
     }
 
@@ -183,6 +189,8 @@ class Playlist
      */
     public function load($save = false)
     {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
         Rsync::initialize(false, $this->tempFilesFromFilename);
         $rsyncOutput = Rsync::execute();
         $this->playlist = $this->generatePlaylistFromRsyncOutput($rsyncOutput);
@@ -204,8 +212,15 @@ class Playlist
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
         if (!empty($this->playlist)) {
-            $stream = new Stream(fopen(static::getFilenameFromUuid($this->uuid, true), 'w'));
-            $stream->write($this->playlist);
+            $playlistFile = static::getFilenameFromUuid($this->uuid, true);
+            $stream = new Stream(fopen($playlistFile, 'w'));
+
+            try {
+                $stream->write($this->playlist);
+            } catch (\Exception $e) {
+                $this->log(sprintf('Playlist - Error while writing to file %s. (%s)', basename($playlistFile), $e->getMessage()), 'error');
+            }
+
             $stream->close();
 
             return $this->playlist;
@@ -221,6 +236,8 @@ class Playlist
      */
     public function sync()
     {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
         Rsync::initialize(true, $this->tempFilesFromFilename);
         Rsync::execute(false);
     }
@@ -242,12 +259,12 @@ class Playlist
         $output = [];
 
         foreach ($input as $line) {
-            if (preg_match('/\.aac|\.aax|\.ape|\.flac|\.m4a|\.mp3|\.ogg|\.wav|\.wma$/', $line)) {
+            if (preg_match(Configure::read('App.audioFileRegexp'), $line)) {
                 $splittedLine = preg_split('/\s+/', $line, 5);
                 $output[] = $splittedLine[4];
             }
         }
 
-        return implode("\n", $output);
+        return implode("\n", $output) . "\n";
     }
 }

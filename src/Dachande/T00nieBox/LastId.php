@@ -41,7 +41,13 @@ class LastId
         static::log(sprintf('LastId - Writing lastId %s to file %s.', $lastId, $lastIdFile), 'info');
 
         $stream = new Stream(fopen($lastIdFile, 'w'));
-        $stream->write($lastId);
+
+        try {
+            $stream->write($lastId);
+        } catch (\Exception $e) {
+            static::log(sprintf('LastId - Error while writing to file %s. (%s)', $lastIdFile, $e->getMessage()), 'error');
+        }
+
         $stream->close();
     }
 
