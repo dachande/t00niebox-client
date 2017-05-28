@@ -15,7 +15,8 @@
         "geerlingguy/ping": "^1.1",
         "fzaninotto/Streamer": "^0.0.1",
         "cakephp/core": "^3.4",
-        "cakephp/log": "^3.4"
+        "cakephp/log": "^3.4",
+        "jahudka/react-mpd": "^1.0"
     },
     "autoload": {
         "psr-4": {

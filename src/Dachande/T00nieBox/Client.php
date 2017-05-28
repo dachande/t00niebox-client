@@ -18,6 +18,11 @@ class Client
     protected $uuid = '';
 
     /**
+     * @var \Jahudka\MPD\Client
+     */
+    protected $mpdClient = null;
+
+    /**
      * Initialize the t00niebox client.
      */
     public function __construct($uuid)
@@ -58,6 +63,23 @@ class Client
     }
 
     /**
+     * Get MPD client object
+     *
+     * @return \Jahudka\MPD\Client
+     */
+    protected function getMpdConnection()
+    {
+        if ($this->mpdClient instanceof \Jahudka\MPD\Client) {
+            return $this->mpdClient;
+        }
+
+        $connection = new \Jahudka\MPD\Connection\Native(Configure::read('MpdTest.connection'));
+        $this->mpdClient = new \Jahudka\MPD\Client($connection, Configure::read('MpdTest.options'));
+
+        return $this->mpdClient;
+    }
+
+    /**
      * Main client
      *
      * @return void
@@ -76,7 +98,9 @@ class Client
         if (LastId::compare($this->uuid)) {
             $this->log('Client - Resuming playback.', 'notice');
 
-            Mpc::command(Mpc::CMD_PLAY);
+            $mpdClient = $this->getMpdConnection();
+            $mpdClient->play();
+
             return true;
         }
 
@@ -102,7 +126,12 @@ class Client
                 // Clear current playlist and add a new one
                 $playlistFile = $playlist->getFilename();
                 $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
-                Mpc::playNewPlaylist($playlistFile);
+
+                $mpdClient = $this->getMpdConnection();
+                $mpdClient->clear();
+                $mpdClient->loadPlaylist(preg_replace('/^(.*)\.m3u$/', '\1', $playlistFile));
+                $mpdClient->play();
+                // Mpc::playNewPlaylist($playlistFile);
 
                 // Write current uuid to lastId
                 LastId::set($this->uuid);
@@ -121,7 +150,12 @@ class Client
                 // Clear current playlist and add a new one
                 $playlistFile = Playlist::getFilenameFromUuid($this->uuid);
                 $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
-                Mpc::playNewPlaylist($playlistFile);
+
+                $mpdClient = $this->getMpdConnection();
+                $mpdClient->clear();
+                $mpdClient->loadPlaylist(preg_replace('/^(.*)\.m3u$/', '\1', $playlistFile));
+                $mpdClient->play();
+                // Mpc::playNewPlaylist($playlistFile);
 
                 // Write current uuid to lastId
                 LastId::set($this->uuid);
