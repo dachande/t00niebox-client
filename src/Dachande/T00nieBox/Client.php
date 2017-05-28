@@ -71,6 +71,14 @@ class Client
         // Validate uuid
         $this->validateUuid();
 
+        // Check if pause-uuid is transmitted.
+        if ($this->uuid === Configure::read('App.pauseUuid')) {
+            $this->log('Client - Pause playback.', 'notice');
+
+            Mpc::command(Mpc::CMD_PAUSE);
+            return true;
+        }
+
         // Compare with previous uuid.
         // If uuids match, resume playback and exit.
         if (LastId::compare($this->uuid)) {
@@ -102,7 +110,8 @@ class Client
                 // Clear current playlist and add a new one
                 $playlistFile = $playlist->getFilename();
                 $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
-                Mpc::playNewPlaylist($playlistFile);
+
+                Mpc::loadNewPlaylist(preg_replace('/^(.*)\.m3u$/', '\1', $playlistFile));
 
                 // Write current uuid to lastId
                 LastId::set($this->uuid);
@@ -121,7 +130,8 @@ class Client
                 // Clear current playlist and add a new one
                 $playlistFile = Playlist::getFilenameFromUuid($this->uuid);
                 $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
-                Mpc::playNewPlaylist($playlistFile);
+
+                Mpc::loadNewPlaylist(preg_replace('/^(.*)\.m3u$/', '\1', $playlistFile));
 
                 // Write current uuid to lastId
                 LastId::set($this->uuid);

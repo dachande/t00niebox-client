@@ -106,9 +106,9 @@ class Mpc
             static::log(sprintf('Mpc - Connecting to MPD server at %s', $serverAddress), 'info');
             static::$server = new Stream(stream_socket_client('tcp://' . Configure::read('Mpd.host') . ':' . Configure::read('Mpd.port')));
 
-            $message = static::$server->read();
+            $response = static::$server->read();
 
-            if (strncmp(static::RES_OK, $message, strlen(static::RES_OK)) === 0) {
+            if (strncmp(static::RES_OK, $response, strlen(static::RES_OK)) === 0) {
                 static::log('Mpc - Connection established.', 'info');
                 static::$isConnected = true;
                 static::$isAuthenticated = false;
@@ -164,18 +164,15 @@ class Mpc
     }
 
     /**
-     * Dispatch a command to the MPD server
+     * Dispatch a command to the MPD server.
+     *
+     * This method will automatically connect to and authenticate with the server.
      *
      * @return boolean
      */
-    protected static function command()
+    public static function command()
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
-
-        // Connect if not already connected
-        if (static::$isConnected === false) {
-            static::connect();
-        }
 
         // Get arguments and method
         $args = func_get_args();
@@ -192,6 +189,17 @@ class Mpc
         // Prepare command
         $command = trim($method . ' ' . implode(' ', $args)) . "\n";
 
+        // Connect and authenticate if not already connected
+        if (static::$isConnected === false) {
+            static::connect();
+
+            // Only do a authentication if this method is not already called
+            // for doing an authentication. Otherwise this could lead to a loop.
+            if ($method !== 'password') {
+                static::authenticate();
+            }
+        }
+
         static::log(sprintf('Mpc - Dispatching command "%s" with arguments %s.', $method, implode('|', $args)), 'debug');
 
         // Send command to server
@@ -200,9 +208,16 @@ class Mpc
         // Receive Response
         $response = static::$server->read();
 
-        static::log(sprintf('Mpc - Server response: "%s".', trim(preg_replace('/\s\s+/', ' ', $response))), 'debug');
+        static::log(sprintf('Mpc - Server response: "%s".', trim(preg_replace('/\s+/', ' ', $response))), 'debug');
 
-        return (strncmp(static::RES_OK, $response, strlen(static::RES_OK)) === 0) ? true : false;
+        switch ($method) {
+            case static::CMD_STATUS:
+            case static::CMD_DB_UPDATE:
+                return (strpos($response, static::RES_OK) !== false) ? $response : false;
+                break;
+            default:
+                return (strncmp(static::RES_OK, $response, strlen(static::RES_OK)) === 0) ? true : false;
+        }
     }
 
     /**
@@ -260,19 +275,82 @@ class Mpc
     }
 
     /**
+     * Update MPD database.
+     *
+     * This method will block execution as long as the database update is running
+     * if $noLock is not explicitly set to true. Will check all 500ms if the database
+     * update has been finished.
+     *
+     * @return boolean
+     */
+    public static function updateDb($noLock = false)
+    {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
+        // Initialize DB update
+        $result = static::command(static::CMD_DB_UPDATE);
+
+        if ($result !== false && $noLock === false) {
+            static::log('Mpc - Waiting for update job to finish.', 'debug');
+
+            do {
+                usleep(500000);
+            } while (static::updateJobRunning());
+
+            static::log('Mpc - Update job finished.', 'debug');
+        }
+    }
+
+    public static function updateJobRunning()
+    {
+        $status = static::status();
+
+        return (array_key_exists('updating_db', $status)) ? true : false;
+    }
+
+    public static function status()
+    {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
+        $result = static::command(static::CMD_STATUS);
+        $result = preg_split('/\n/', $result);
+
+        $keyedResult = [];
+
+        foreach ($result as $single) {
+            if (strpos($single, ': ') === false || $single === 'OK') {
+                continue;
+            }
+            list ($key, $value) = explode(': ', $single);
+
+            if (!strlen($key) || !strlen($value)) {
+                continue;
+            }
+
+            $keyedResult[$key] = $value;
+        }
+
+        return $keyedResult;
+    }
+
+    /**
      * Play new playlist.
      *
      * This will clear the current playlist being played, adds a new Playlist
      * and starts playback of the new playlist.
+     * This command also forces an MPD database update.
      *
      * @param string $playlist
      */
-    public static function playNewPlaylist($playlist)
+    public static function loadNewPlaylist($playlist)
     {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
         // TODO: Check commands to send to server to play a new playlist
 
         static::command(static::CMD_PL_CLEAR);
-        static::command(static::CMD_PL_ADD, $playlist);
+        static::updateDb();
+        static::command(static::CMD_PLAYLISTLOAD, $playlist);
         static::command(static::CMD_PLAY);
     }
 }
