@@ -63,6 +63,7 @@ class Mpc
     const CMD_PLAYLISTSAVE = "save";
     const CMD_CLOSE = "close";
     const CMD_KILL = "kill";
+    const CMD_COMMANDS = "commands";
 
     /**
      * Server connection state
@@ -163,6 +164,46 @@ class Mpc
         return $result;
     }
 
+    protected static function parseResult($result)
+    {
+        $result = preg_split('/\n/', $result);
+
+        $keyedResult = [];
+
+        // Parse each result line
+        foreach ($result as $single) {
+            // Check for delimiter splitting key and value
+            if (strpos($single, ': ') === false || $single === 'OK') {
+                continue;
+            }
+
+            // Split
+            list($key, $value) = explode(': ', $single);
+
+            // Skip empty key/value
+            if (!strlen($key) || !strlen($value)) {
+                continue;
+            }
+
+            // Check if key is used multiple times
+            if (array_key_exists($key, $keyedResult)) {
+                if (!is_array($keyedResult[$key])) {
+                    // Convert to indexed array
+                    $currentValue = $keyedResult[$key];
+                    $keyedResult[$key] = [];
+                    $keyedResult[$key][] = $currentValue;
+                    $keyedResult[$key][] = $value;
+                } else {
+                    $keyedResult[$key][] = $value;
+                }
+            } else {
+                $keyedResult[$key] = $value;
+            }
+        }
+
+        return $keyedResult;
+    }
+
     /**
      * Dispatch a command to the MPD server.
      *
@@ -213,6 +254,7 @@ class Mpc
         switch ($method) {
             case static::CMD_STATUS:
             case static::CMD_DB_UPDATE:
+            case static::CMD_COMMANDS:
                 return (strpos($response, static::RES_OK) !== false) ? $response : false;
                 break;
             default:
@@ -247,14 +289,14 @@ class Mpc
 
             static::log('Mpc - Successfully authenticated.', 'debug');
 
-            if (static::update() === false) {
+            if (static::checkAccess() === false) {
                 static::log('Mpc - Password does not have read access.', 'error');
 
                 static::disconnect();
                 return false;
             }
         } else {
-            if (static::update() === false) {
+            if (static::checkAccess() === false) {
                 static::log('Mpc - Password required to access server', 'error');
 
                 static::disconnect();
@@ -268,10 +310,20 @@ class Mpc
         return true;
     }
 
-    public static function update()
+    /**
+     * Check access level.
+     *
+     * This method checks if admin access level is granted by scanning all
+     * available commands.
+     * Admin access level is needed to use the update_db command.
+     *
+     * @return boolean
+     */
+    public static function checkAccess()
     {
-        // TODO: Add logic to update server information locally.
-        return true;
+        $commands = static::commands();
+
+        return (in_array('update', $commands['command'])) ? true : false;
     }
 
     /**
@@ -301,6 +353,11 @@ class Mpc
         }
     }
 
+    /**
+     * Check if a MPD database update job is running.
+     *
+     * @return boolean
+     */
     public static function updateJobRunning()
     {
         $status = static::status();
@@ -308,45 +365,53 @@ class Mpc
         return (array_key_exists('updating_db', $status)) ? true : false;
     }
 
+    /**
+     * Retrieve current MPD status.
+     *
+     * @return array
+     */
     public static function status()
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 
         $result = static::command(static::CMD_STATUS);
-        $result = preg_split('/\n/', $result);
 
-        $keyedResult = [];
-
-        foreach ($result as $single) {
-            if (strpos($single, ': ') === false || $single === 'OK') {
-                continue;
-            }
-            list ($key, $value) = explode(': ', $single);
-
-            if (!strlen($key) || !strlen($value)) {
-                continue;
-            }
-
-            $keyedResult[$key] = $value;
+        if ($result !== false) {
+            $result = static::parseResult($result);
         }
 
-        return $keyedResult;
+        return $result;
     }
 
     /**
-     * Play new playlist.
+     * Retrieve current MPD status.
      *
-     * This will clear the current playlist being played, adds a new Playlist
-     * and starts playback of the new playlist.
-     * This command also forces an MPD database update.
+     * @return array
+     */
+    public static function commands()
+    {
+        static::log(sprintf('%s', __METHOD__), 'debug');
+
+        $result = static::command(static::CMD_COMMANDS);
+
+        if ($result !== false) {
+            $result = static::parseResult($result);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Load and play a new playlist.
+     *
+     * This will clear the current playlist being played,
+     * updated the MPD database, adds the new Playlist and starts playback.
      *
      * @param string $playlist
      */
     public static function loadNewPlaylist($playlist)
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
-
-        // TODO: Check commands to send to server to play a new playlist
 
         static::command(static::CMD_PL_CLEAR);
         static::updateDb();
