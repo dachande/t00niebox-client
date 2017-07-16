@@ -388,7 +388,7 @@ class Mpc
     }
 
     /**
-     * Retrieve current MPD status.
+     * Retrieve list of available MPD commands
      *
      * @return array
      */
