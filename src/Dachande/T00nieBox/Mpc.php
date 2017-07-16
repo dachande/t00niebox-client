@@ -241,7 +241,11 @@ class Mpc
             }
         }
 
-        static::log(sprintf('Mpc - Dispatching command "%s" with arguments %s.', $method, implode('|', $args)), 'debug');
+        if (sizeof($args) > 0) {
+            static::log(sprintf('Mpc - Dispatching command "%s" with arguments %s.', $method, implode('|', $args)), 'debug');
+        } else {
+            static::log(sprintf('Mpc - Dispatching command "%s" with no arguments.', $method), 'debug');
+        }
 
         // Send command to server
         static::$server->write($command);

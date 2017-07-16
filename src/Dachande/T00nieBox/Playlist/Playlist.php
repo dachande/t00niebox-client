@@ -44,7 +44,7 @@ class Playlist
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
         $this->card = $card;
-        $this->generateFilesFromFilename();
+        $this->tempFilesFromFilename = $this->generateFilesFromFilename();
         $this->storeFiles();
     }
 
@@ -67,7 +67,7 @@ class Playlist
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        $this->tempFilesFromFilename = ROOT . DS . Security::hash($this->filesToString(), 'md5') . '.txt';
+        return ROOT . DS . Security::hash($this->filesToString(), 'md5') . '.txt';
     }
 
     /**
@@ -106,26 +106,28 @@ class Playlist
     /**
      * Returns the playlist filename.
      *
+     * @param boolean $fullPath
      * @return string
      */
     public function getFilename($fullPath = false)
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        return static::getFilenameFromUuid($this->card->getUuid()->get(), $fullPath);
+        return static::getFilenameFromUuid($this->card->getUuid(), $fullPath);
     }
 
     /**
      * Get playlist filename.
      *
+     * @param \Dachande\T00nieBox\Uuid $uuid
      * @param boolean $fullPath
      * @return string
      */
-    public static function getFilenameFromUuid($uuid, $fullPath = false)
+    public static function getFilenameFromUuid(\Dachande\T00nieBox\Uuid $uuid, $fullPath = false)
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 
-        $filename = Configure::read('Mpd.playlists') . DS . $uuid . '.m3u';
+        $filename = Configure::read('Mpd.playlists') . DS . $uuid->get() . '.m3u';
 
         return ($fullPath === true) ? $filename : basename($filename);
     }
@@ -136,7 +138,7 @@ class Playlist
      * @param  string $uuid
      * @return boolean
      */
-    public static function exists($uuid = '')
+    public static function exists(\Dachande\T00nieBox\Uuid $uuid)
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 

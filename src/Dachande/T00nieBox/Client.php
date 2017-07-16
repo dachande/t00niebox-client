@@ -96,9 +96,9 @@ class Client
             // It looks like the server could not be reached or there is no card
             // attached to the requested rfid uuid.
             // So we try to find a local copy of the playlist for that uuid instead.
-            if (Playlist::exists($uuid)) {
+            if (Playlist::exists($this->uuid)) {
                 // Clear current playlist and add a new one
-                $playlistFile = Playlist::getFilenameFromUuid($uuid);
+                $playlistFile = Playlist::getFilenameFromUuid($this->uuid);
                 $this->log(sprintf('Client - Starting playback of playlist %s', $playlistFile), 'notice');
 
                 Mpc::loadNewPlaylist(preg_replace('/^(.*)\.m3u$/', '\1', $playlistFile));
@@ -108,7 +108,7 @@ class Client
 
                 return true;
             } else {
-                $this->log(sprintf('Client - Could not find playlist file for uuid %s.', $uuid), 'warning');
+                $this->log(sprintf('Client - Could not find playlist file for uuid %s.', $this->uuid->get()), 'warning');
 
                 return false;
             }
