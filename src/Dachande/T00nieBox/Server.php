@@ -6,6 +6,7 @@ use JJG\Ping;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use GuzzleHttp\Exception\ConnectException;
+use Dachande\T00nieBox\Card\CardFactory;
 
 /**
  * t00niebox server interaction.
@@ -131,51 +132,21 @@ class Server
     }
 
     /**
-     * Get all playlists from the server.
-     *
-     * In a default t00niebox implementation this method should not be used
-     * as it is currently only used for debugging purposes.
-     * It might be removed in the near future.
-     *
-     * @return array|null
-     */
-    public static function getAllCards()
-    {
-        static::log(sprintf('%s', __METHOD__), 'debug');
-
-        try {
-            $result = static::query('cards');
-
-            if ($result !== false) {
-                $result = $result->getBody()->getContents();
-            }
-        } catch (ClientException $e) {
-            $result = $e->getResponse()->getBody()->getContents();
-        }
-
-        return json_decode($result, true);
-    }
-
-    /**
      * Get a single playlist from the server by its uuid.
      *
-     * @param  string $uuid
-     * @return array|null
+     * @param  \Dachande\T00nieBox\Uuid $uuid
+     * @return \Dachande\T00nieBox\Card\Card
      */
-    public static function getCardByUuid($uuid)
+    public static function getCardByUuid(\Dachande\T00nieBox\Uuid $uuid): \Dachande\T00nieBox\Card\Card
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 
-        try {
-            $result = static::query('cards/' . $uuid);
+        $result = static::query('cards/' . $uuid->get());
 
-            if ($result !== false) {
-                $result = $result->getBody()->getContents();
-            }
-        } catch (ClientException $e) {
-            $result = $e->getResponse()->getBody()->getContents();
+        if ($result !== false) {
+            $result = $result->getBody()->getContents();
         }
 
-        return json_decode($result, true);
+        return CardFactory::createFromJson($result);
     }
 }

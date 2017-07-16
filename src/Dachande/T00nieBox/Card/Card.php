@@ -1,5 +1,5 @@
 <?php
-namespace Dachande\T00nieBox;
+namespace Dachande\T00nieBox\Card;
 
 class Card
 {
@@ -8,9 +8,9 @@ class Card
     /**
      * Card Uuid
      *
-     * @var string
+     * @var \Dachande\T00nieBox\Uuid
      */
-    protected $uuid = '';
+    protected $uuid;
 
     /**
      * Playlist title
@@ -33,11 +33,11 @@ class Card
      * @param string $title
      * @param array $files
      */
-    public function __construct($uuid, $title, $files)
+    public function __construct(\Dachande\T00nieBox\Uuid $uuid, string $title, array $files)
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        $this->log(sprintf('Card - Creating new card with uuid "%s" and title "%s".', $uuid, $title), 'info');
+        $this->log(sprintf('Card - Creating new card with uuid "%s" and title "%s".', $uuid->get(), $title), 'info');
 
         $this->uuid = $uuid;
         $this->title = $title;
@@ -46,7 +46,7 @@ class Card
 
     /**
      * Get card uuid.
-     * @return string
+     * @return \Dachande\T00nieBox\Uuid
      */
     public function getUuid()
     {
@@ -101,15 +101,5 @@ class Card
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
         $this->files = $files;
-    }
-
-    /**
-     * Returns an InvalidArgumentException
-     *
-     * @return \InvalidArgumentException
-     */
-    protected static function generateInvalidArgumentException()
-    {
-        return new \InvalidArgumentException('Card array structure invalid.');
     }
 }

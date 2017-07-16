@@ -22,8 +22,9 @@ return [
     'App' => [
         'uuidRegexp' => '/^[0-9a-f]{8}$/',
         'audioFileRegexp' => '/\.aac|\.aax|\.ape|\.flac|\.m4a|\.mp3|\.ogg|\.wav|\.wma$/',
-        'lastIdFile' => ROOT . DS . 'last_id',
+        'lastUuidFile' => ROOT . DS . 'last_id',
         'pauseUuid' => '00000000',
+        'invalidUuid' => 'ffffffff',
     ],
 
     /**

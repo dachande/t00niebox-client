@@ -1,5 +1,4 @@
 <?php
-
 namespace Dachande\T00nieBox;
 
 use Cake\Core\Configure;

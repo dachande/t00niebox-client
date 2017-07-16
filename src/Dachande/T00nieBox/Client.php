@@ -2,8 +2,10 @@
 namespace Dachande\T00nieBox;
 
 use Cake\Core\Configure;
-use Dachande\T00nieBox\Uuid;
 use Cake\Utility\Security;
+use Dachande\T00nieBox\Uuid;
+use Dachande\T00nieBox\Card\CardFactory;
+use Dachande\T00nieBox\Playlist\Playlist;
 
 /**
  * The t00niebox client
@@ -38,39 +40,38 @@ class Client
 
         $this->log('Client - Running the client.', 'notice');
 
-        $uuid = $this->uuid->get();
-
         // Check if pause-uuid is transmitted.
-        if ($uuid === Configure::read('App.pauseUuid')) {
+        if ($this->uuid->get() === Configure::read('App.pauseUuid')) {
             $this->log('Client - Pause playback.', 'notice');
 
+            // Send pause command to MPD
             Mpc::command(Mpc::CMD_PAUSE);
             return true;
         }
 
         // Compare with previous uuid.
         // If uuids match, resume playback and exit.
-        if (LastId::compare($uuid)) {
+        if (LastUuid::compare($this->uuid)) {
             $this->log('Client - Resuming playback.', 'notice');
 
+            // Send play command to MPD
             Mpc::command(Mpc::CMD_PLAY);
             return true;
         }
 
         // Try to get card from server for the specified uuid.
         try {
-            $card = CardFactory::createFromJson(Server::getCardByUuid($uuid));
+            $card = Server::getCardByUuid($this->uuid);
         } catch (\InvalidArgumentException $e) {
             $this->log($e->getMessage(), 'warning');
 
-            $card = new Card($uuid, 'Empty playlist', []);
+            $card = CardFactory::createEmpty($this->uuid);
         }
 
         // Check if card was successfully downloaded.
         if ($card->hasFiles()) {
-            // Get playlist object by feeding it with the file list from downloaded card.
-            $playlist = Playlist::create($card->getFiles(), $uuid);
-
+            // Get playlist object by feeding it with the downloaded card.
+            $playlist = new Playlist($card);
             // Load playlist from remote and save playlist file
             if ($playlist->load(true) !== false) {
                 // Synchronize audio files
@@ -83,7 +84,7 @@ class Client
                 Mpc::loadNewPlaylist(preg_replace('/^(.*)\.m3u$/', '\1', $playlistFile));
 
                 // Write current uuid to lastId
-                LastId::set($uuid);
+                LastUuid::set($this->uuid);
 
                 return true;
             } else {
@@ -103,7 +104,7 @@ class Client
                 Mpc::loadNewPlaylist(preg_replace('/^(.*)\.m3u$/', '\1', $playlistFile));
 
                 // Write current uuid to lastId
-                LastId::set($uuid);
+                LastUuid::set($this->uuid);
 
                 return true;
             } else {

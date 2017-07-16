@@ -1,9 +1,10 @@
 <?php
-namespace Dachande\T00nieBox;
+namespace Dachande\T00nieBox\Playlist;
 
 use Cake\Core\Configure;
 use Cake\Utility\Security;
 use Streamer\Stream;
+use Dachande\T00nieBox\Rsync;
 
 /**
  * Playlist handling.
@@ -13,18 +14,11 @@ class Playlist
     use \Cake\Log\LogTrait;
 
     /**
-     * UUid needed for playlist file generation.
+     * Card object
      *
-     * @var $string
+     * @var \Dachande\T00nieBox\Card\Card
      */
-    protected $uuid = '';
-
-    /**
-     * Holds an array of files/folders stored in a card
-     *
-     * @var array
-     */
-    protected $files = [];
+    protected $card;
 
     /**
      * List of audio files as a string to be stored in a playlist file.
@@ -43,14 +37,15 @@ class Playlist
     /**
      * Initializes a playlist.
      *
-     * @param array $files
+     * @param \Dachande\T00nieBox\Card\Card $card
      */
-    public function __construct(array $files, $uuid)
+    public function __construct(\Dachande\T00nieBox\Card\Card $card)
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        $this->setFiles($files);
-        $this->uuid = $uuid;
+        $this->card = $card;
+        $this->generateFilesFromFilename();
+        $this->storeFiles();
     }
 
     /**
@@ -58,39 +53,9 @@ class Playlist
      */
     public function __destruct()
     {
-        $this->log(sprintf('%s', __METHOD__), 'debug');
-
         if (file_exists($this->tempFilesFromFilename)) {
-            $this->log(sprintf('Playlist - Removing temporary file. (%s)', basename($this->tempFilesFromFilename)), 'info');
             unlink($this->tempFilesFromFilename);
         }
-    }
-
-    /**
-     * Create an instance of a playlist and initialize.
-     *
-     * @param  array $files
-     * @return \Dachande\T00nieBox\Playlist
-     */
-    public static function create(array $files, $uuid)
-    {
-        static::log(sprintf('%s', __METHOD__), 'debug');
-
-        return new static($files, $uuid);
-    }
-
-    /**
-     * Set a file list from a card and initializes its corresponding temporary file for rsync.
-     *
-     * @param array $files
-     */
-    public function setFiles(array $files)
-    {
-        $this->log(sprintf('%s', __METHOD__), 'debug');
-
-        $this->files = $files;
-        $this->generateFilesFromFilename();
-        $this->storeFiles();
     }
 
     /**
@@ -114,7 +79,7 @@ class Playlist
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        return implode("\n", $this->files);
+        return implode("\n", $this->card->getFiles());
     }
 
     /**
@@ -143,11 +108,11 @@ class Playlist
      *
      * @return string
      */
-    public function getFilename()
+    public function getFilename($fullPath = false)
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        return static::getFilenameFromUuid($this->uuid);
+        return static::getFilenameFromUuid($this->card->getUuid()->get(), $fullPath);
     }
 
     /**
@@ -193,6 +158,7 @@ class Playlist
 
         Rsync::initialize(false, $this->tempFilesFromFilename);
         $rsyncOutput = Rsync::execute();
+        // TODO: Validate Rsync output
         $this->playlist = $this->generatePlaylistFromRsyncOutput($rsyncOutput);
 
         if ($save === true) {
@@ -212,7 +178,7 @@ class Playlist
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
         if (!empty($this->playlist)) {
-            $playlistFile = static::getFilenameFromUuid($this->uuid, true);
+            $playlistFile = $this->getFilename(true);
             $stream = new Stream(fopen($playlistFile, 'w'));
 
             try {
