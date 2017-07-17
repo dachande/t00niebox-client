@@ -7,13 +7,24 @@ use Dachande\T00nieBox\Exception\MalformedJsonException;
 
 class CardFactory
 {
-    protected static $defaultCardTitle = 'Unknown Title';
+    /**
+     * @var string
+     */
+    protected static $defaultCardTitle = 'Unknown title';
 
-    public static function createFromJson($cardData): \Dachande\T00nieBox\Card\Card
+    /**
+     * @var string
+     */
+    protected static $emptyCardTitle = 'Empty card';
+
+    /**
+     * Create new card using JSON encoded data
+     *
+     * @param string $cardData
+     * @return \Dachande\T00nieBox\Card\Card
+     */
+    public static function createFromJson(string $cardData): \Dachande\T00nieBox\Card\Card
     {
-        if (!is_string($cardData)) {
-            throw new \InvalidArgumentException('Argument needs to be of type string.');
-        }
         $cardDataArray = json_decode($cardData, true);
 
         if ($cardDataArray === null) {
@@ -23,6 +34,12 @@ class CardFactory
         return static::createFromArray(json_decode($cardData, true));
     }
 
+    /**
+     * Create new card using array of data
+     *
+     * @param array $cardData
+     * @return \Dachande\T00nieBox\Card\Card
+     */
     public static function createFromArray(array $cardData): \Dachande\T00nieBox\Card\Card
     {
         if (!array_key_exists('card', $cardData)) {
@@ -54,8 +71,14 @@ class CardFactory
         return new Card(new Uuid($cardData['card']['uuid']), $title, $files);
     }
 
-    public function createEmpty(Uuid $uuid): \Dachande\T00nieBox\Card\Card
+    /**
+     * Create new empty card with the specified uuid
+     *
+     * @param \Dachande\T00nieBox\Uuid $uuid
+     * @return \Dachande\T00nieBox\Card\Card
+     */
+    public static function createEmpty(Uuid $uuid): \Dachande\T00nieBox\Card\Card
     {
-        return new Card($uuid, 'Empty card', []);
+        return new Card($uuid, static::$emptyCardTitle, []);
     }
 }
