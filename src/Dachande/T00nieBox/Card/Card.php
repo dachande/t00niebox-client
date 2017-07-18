@@ -29,7 +29,7 @@ class Card
     /**
      * Generates card object
      *
-     * @param string $uuid
+     * @param \Dachande\T00nieBox\Uuid $uuid
      * @param string $title
      * @param array $files
      */
@@ -46,6 +46,7 @@ class Card
 
     /**
      * Get card uuid.
+     *
      * @return \Dachande\T00nieBox\Uuid
      */
     public function getUuid()
