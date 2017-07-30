@@ -20,6 +20,13 @@ class Card
     protected $title = '';
 
     /**
+     * Playlist share
+     *
+     * @var string
+     */
+    protected $share = '';
+
+    /**
      * Files/Folders to download and put into the final playlist
      *
      * @var array
@@ -31,9 +38,10 @@ class Card
      *
      * @param \Dachande\T00nieBox\Uuid $uuid
      * @param string $title
+     * @param string $share
      * @param array $files
      */
-    public function __construct(\Dachande\T00nieBox\Uuid $uuid, string $title, array $files)
+    public function __construct(\Dachande\T00nieBox\Uuid $uuid, string $title, string $share, array $files)
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
@@ -41,6 +49,7 @@ class Card
 
         $this->uuid = $uuid;
         $this->title = $title;
+        $this->share = $share;
         $this->files = $files;
     }
 
@@ -66,6 +75,30 @@ class Card
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
         return $this->title;
+    }
+
+    /**
+     * Get playlist share
+     *
+     * @return string
+     */
+    public function getShare()
+    {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
+        return $this->share;
+    }
+
+    /**
+     * Check if card has a share set
+     *
+     * @return string
+     */
+    public function hasShare()
+    {
+        $this->log(sprintf('%s', __METHOD__), 'debug');
+
+        return (!empty($this->share)) ? true : false;
     }
 
     /**
