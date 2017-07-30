@@ -62,7 +62,7 @@ class Client
         // Try to get card from server for the specified uuid.
         try {
             $card = Server::getCardByUuid($this->uuid);
-        } catch (\InvalidArgumentException $e) {
+        } catch (\Exception $e) {
             $this->log($e->getMessage(), 'warning');
 
             $card = CardFactory::createEmpty($this->uuid);
