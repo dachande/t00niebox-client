@@ -1,0 +1,35 @@
+# An example configuration file for MPD.
+# Read the user manual for documentation: http://www.musicpd.org/doc/user/
+
+music_directory      "~/music"
+playlist_directory   "~/.mpd/playlists"
+db_file              "~/.mpd/database"
+log_file             "~/.mpd/log"
+pid_file             "~/.mpd/pid"
+state_file           "~/.mpd/state"
+sticker_file         "~/.mpd/sticker.sql"
+
+bind_to_address      "127.0.0.1"
+port                 "6600"
+
+log_level            "default"
+
+gapless_mp3_playback "yes"
+restore_paused       "yes"
+save_absolute_paths_in_playlists "no"
+auto_update          "yes"
+auto_update_depth    "9"
+
+zeroconf_enabled     "no"
+
+password             "t00niebox@read,add,control,admin"
+
+audio_output {
+  type            "alsa"
+  name            "Default Alsa Output"
+##  device        "hw:0,0"        # optional
+##  mixer_type    "hardware"      # optional
+##  mixer_device  "default"       # optional
+##  mixer_control "PCM"           # optional
+##  mixer_index   "0"             # optional
+}
