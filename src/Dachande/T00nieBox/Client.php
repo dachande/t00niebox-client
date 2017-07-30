@@ -96,6 +96,8 @@ class Client
             // It looks like the server could not be reached or there is no card
             // attached to the requested rfid uuid.
             // So we try to find a local copy of the playlist for that uuid instead.
+            $this->log('Client - Server unavailable or remote card not found. Trying to find local playlist.', 'notice');
+
             if (Playlist::exists($this->uuid)) {
                 // Clear current playlist and add a new one
                 $playlistFile = Playlist::getFilenameFromUuid($this->uuid);

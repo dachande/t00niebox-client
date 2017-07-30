@@ -158,6 +158,8 @@ class Playlist
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
+        $this->log('Playlist - Downloading playlist...', 'notice');
+
         Rsync::initialize(false, $this->card->getShare(), $this->tempFilesFromFilename);
         $rsyncOutput = Rsync::execute();
         // TODO: Validate Rsync output
@@ -205,6 +207,8 @@ class Playlist
     public function sync()
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
+
+        $this->log('Playlist - Synchronizing files...', 'notice');
 
         Rsync::initialize(true, $this->card->getShare(), $this->tempFilesFromFilename);
         Rsync::execute(false);
