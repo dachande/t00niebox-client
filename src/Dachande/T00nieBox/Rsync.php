@@ -33,11 +33,12 @@ class Rsync
         static::log(sprintf('%s', __METHOD__), 'debug');
 
         // Set Rsync source
-        $source = Configure::read('Rsync.source') . ':"' . $sourceBasePath . '"';
+        $source = Configure::read('Rsync.source') . ':' . escapeshellarg($sourceBasePath);
         $sourceUsername = Configure::read('Rsync.sourceUsername');
         if ($sourceUsername !== null) {
             $source = $sourceUsername . '@' . $source;
         }
+        $source = '"' . $source . '"';
 
         // Set Rsync target
         $target = Configure::read('Rsync.target');
@@ -99,8 +100,9 @@ class Rsync
             throw new \Dachande\T00nieBox\Exception\UninitializedException("Initialize Rsync Command before execution.");
         }
 
-        debug(static::$rsyncCommand->getCommand());
-        exit;
+        // debug(static::$rsyncCommand->getCommand());
+        // exit;
+
         if ($returnOutput === true) {
             $output = '';
             $command = static::$rsyncCommand->getCommand();
