@@ -18,6 +18,11 @@ class CardFactory
     protected static $emptyCardTitle = 'Empty card';
 
     /**
+     * @var string
+     */
+    protected static $defaultShare = '/';
+
+    /**
      * Create new card using JSON encoded data
      *
      * @param string $cardData
@@ -67,8 +72,9 @@ class CardFactory
         }
 
         $title = (!empty($cardData['card']['title'])) ? $cardData['card']['title'] : static::$defaultCardTitle;
+        $share = (!empty($cardData['card']['share'])) ? $cardData['card']['share'] : static::$defaultShare;
 
-        return new Card(new Uuid($cardData['card']['uuid']), $title, $files);
+        return new Card(new Uuid($cardData['card']['uuid']), $title, $share, $files);
     }
 
     /**
@@ -79,6 +85,6 @@ class CardFactory
      */
     public static function createEmpty(Uuid $uuid): \Dachande\T00nieBox\Card\Card
     {
-        return new Card($uuid, static::$emptyCardTitle, []);
+        return new Card($uuid, static::$emptyCardTitle, static::$defaultShare, []);
     }
 }

@@ -62,7 +62,7 @@ return [
      * to the playlist.
      */
     'Rsync' => [
-        'source' => 'remote.hostname:/',
+        'source' => 'remote.hostname',
         'sourceUsername' => 'username',
         'target' => '~/t00niebox/music',
         // 'targetUsername' => 'dachande',

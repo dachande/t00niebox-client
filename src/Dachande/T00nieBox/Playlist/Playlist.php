@@ -106,7 +106,7 @@ class Playlist
     /**
      * Returns the playlist filename.
      *
-     * @param boolean $fullPath
+     * @param bool $fullPath
      * @return string
      */
     public function getFilename($fullPath = false)
@@ -120,7 +120,7 @@ class Playlist
      * Get playlist filename.
      *
      * @param \Dachande\T00nieBox\Uuid $uuid
-     * @param boolean $fullPath
+     * @param bool $fullPath
      * @return string
      */
     public static function getFilenameFromUuid(\Dachande\T00nieBox\Uuid $uuid, $fullPath = false)
@@ -135,8 +135,8 @@ class Playlist
     /**
      * Check if playlist file exists.
      *
-     * @param  string $uuid
-     * @return boolean
+     * @param  \Dachande\T00nieBox\Uuid $uuid
+     * @return bool
      */
     public static function exists(\Dachande\T00nieBox\Uuid $uuid)
     {
@@ -151,14 +151,14 @@ class Playlist
      * By setting $save to true the method will call the save() method
      * for you to store the retrieved playlist in the playlist file.
      *
-     * @param  boolean $save
-     * @return string|boolean
+     * @param  bool $save
+     * @return string|bool
      */
     public function load($save = false)
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        Rsync::initialize(false, $this->tempFilesFromFilename);
+        Rsync::initialize(false, $this->card->getShare(), $this->tempFilesFromFilename);
         $rsyncOutput = Rsync::execute();
         // TODO: Validate Rsync output
         $this->playlist = $this->generatePlaylistFromRsyncOutput($rsyncOutput);
@@ -173,7 +173,7 @@ class Playlist
     /**
      * Save playlist to file.
      *
-     * @return string|boolean
+     * @return string|bool
      */
     public function save()
     {
@@ -206,7 +206,7 @@ class Playlist
     {
         $this->log(sprintf('%s', __METHOD__), 'debug');
 
-        Rsync::initialize(true, $this->tempFilesFromFilename);
+        Rsync::initialize(true, $this->card->getShare(), $this->tempFilesFromFilename);
         Rsync::execute(false);
     }
 

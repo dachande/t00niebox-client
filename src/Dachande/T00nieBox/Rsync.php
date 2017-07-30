@@ -24,15 +24,16 @@ class Rsync
      * This will not execute the rsync command. To execute the command use the execute() method on
      * the returned object.
      *
-     * @param boolean $sync
+     * @param bool $sync
+     * @param string $sourceBasePath
      * @param string $filesFrom
      */
-    public static function initialize($sync = true, $filesFrom = null)
+    public static function initialize($sync = true, $sourceBasePath = '/', $filesFrom = null)
     {
         static::log(sprintf('%s', __METHOD__), 'debug');
 
         // Set Rsync source
-        $source = Configure::read('Rsync.source');
+        $source = Configure::read('Rsync.source') . ':"' . $sourceBasePath . '"';
         $sourceUsername = Configure::read('Rsync.sourceUsername');
         if ($sourceUsername !== null) {
             $source = $sourceUsername . '@' . $source;
@@ -87,7 +88,7 @@ class Rsync
      * piped to stdout using a simple shell_exec() call. Otherwise the output
      * will be returned as a string.
      *
-     * @param boolean $returnOutput
+     * @param bool $returnOutput
      * @return string|void
      */
     public static function execute($returnOutput = true)
@@ -98,6 +99,8 @@ class Rsync
             throw new \Dachande\T00nieBox\Exception\UninitializedException("Initialize Rsync Command before execution.");
         }
 
+        debug(static::$rsyncCommand->getCommand());
+        exit;
         if ($returnOutput === true) {
             $output = '';
             $command = static::$rsyncCommand->getCommand();
