@@ -2,6 +2,8 @@
 
 Client component for my custom reimplementation of the [Toniebox](https://tonies.de/).
 
+This project has been abandoned in favor of [Weecast](https://github.com/dachande/weecast).
+
 ## Why?
 
 I like the concept of the Toniebox using little tokens (called Tonies&reg;) that contain small rfid chips. Each one of these Tonies stand for a different radio play. The magic happens as soon as you place one of these Tonies onto your Toniebox&reg; which then start to play the radio play that is attached to that specific Tonie.
